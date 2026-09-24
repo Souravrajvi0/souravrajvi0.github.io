@@ -1,0 +1,649 @@
+
+
+.game-container,
+#game-container {
+    cursor: url('images/crosshair.png') 12 12, crosshair;
+    contain: layout paint style;
+    isolation: isolate;
+}
+
+#duckhunt-bg,
+.game-foreground {
+    contain: paint;
+    transform: translateZ(0);
+}
+
+.bird {
+    cursor: url('images/crosshair.png') 12 12, crosshair;
+    backface-visibility: hidden;
+    contain: layout paint;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    z-index: 10;
+}
+
+.hand-tracking-cursor-hidden,
+.hand-tracking-cursor-hidden * {
+    cursor: none !important;
+}
+
+.dog {
+    cursor: default;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    left: 40%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    user-select: none;
+    z-index: 10;
+    width: 11rem;
+    height: 11rem;
+    backface-visibility: hidden;
+    contain: layout paint;
+    will-change: transform;
+}
+
+.fall {
+    transition: transform 2s ease-in;
+}
+
+
+
+/* HUD Container positioning over the game ground */
+.hud-container {
+    position: absolute;
+    bottom: 30px;
+    left: 40px;
+    right: 40px;
+    height: 84px;
+    z-index: 30;
+    pointer-events: none;
+    user-select: none;
+}
+
+.hud-left-group {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    pointer-events: none;
+}
+
+.shot-box {
+    width: 62px;
+    transform: scale(1.8);
+    transform-origin: bottom left;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
+    flex-shrink: 0;
+}
+
+.hit-box {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 176px;
+    transform: translateX(-50%) scale(1.8);
+    transform-origin: bottom center;
+}
+
+/* SHOT Label and Bullets */
+.shot-label {
+    color: #63adff;
+    font-size: 11px;
+    font-family: 'Joystick', monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 4px;
+    text-align: center;
+}
+
+.bullet-container {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    min-height: 14px;
+    align-items: center;
+}
+
+.bullet {
+    width: 8px;
+    height: 14px;
+    background-image: url('images/hud_bullet.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    image-rendering: pixelated;
+    display: inline-block;
+}
+
+.bullet.spent {
+    filter: brightness(0.2); /* Turns the bullet into a dark/empty silhouette */
+}
+
+/* HIT Label and Duck Indicators */
+.hit-label {
+    color: #8cd600;
+    font-size: 11px;
+    font-family: 'Joystick', monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.hit-container {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.hit-icon {
+    width: 16px;
+    height: 14px;
+    background-image: url('images/hud_duck_white.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    display: inline-block;
+}
+
+.hit-icon.active {
+    background-image: url('images/hud_duck_red.png');
+}
+
+/* SCORE Box layout (alternating pink/purple blocks on top) */
+.score-box {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 88px;
+    transform: scale(1.8);
+    transform-origin: bottom right;
+    padding: 4px 8px !important;
+    min-width: 90px;
+}
+
+.score-val {
+    font-size: 14px;
+    font-family: 'Joystick', monospace;
+    color: white;
+    text-align: center;
+    text-shadow: 2px 2px 0px #000;
+    margin-bottom: 2px;
+}
+
+.score-label {
+    color: white;
+    font-size: 10px;
+    font-family: 'Joystick', monospace;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+/* Responsive HUD for phones/tablets */
+@media (max-width: 768px) {
+    .hud-container {
+        left: 16px;
+        right: 16px;
+        bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+        height: 68px;
+    }
+    
+    .hud-left-group {
+        gap: 12px;
+    }
+
+    .shot-box {
+        width: 56px;
+        transform: scale(1.3);
+        transform-origin: bottom left;
+    }
+    
+    .hit-box {
+        width: 150px;
+        transform: translateX(-50%) scale(1.2);
+        transform-origin: bottom center;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        gap: 6px !important;
+    }
+    
+    .hit-container {
+        gap: 2px !important;
+    }
+
+    .hit-icon {
+        width: 12px;
+        height: 10px;
+    }
+    
+    .score-box {
+        width: 70px;
+        transform: scale(1.3);
+        transform-origin: bottom right;
+        min-width: 75px;
+        padding: 2px 6px !important;
+    }
+    
+    .score-val {
+        font-size: 11px;
+    }
+    
+    .score-label {
+        font-size: 8px;
+    }
+
+    #duckhunt-bg,
+    .game-foreground {
+        background-position: 70% bottom !important;
+    }
+
+    .dog {
+        left: 82% !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .hud-container {
+        left: 14px;
+        right: 14px;
+        bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+        height: 58px;
+    }
+    
+    .hud-left-group {
+        gap: 8px;
+    }
+
+    .shot-box {
+        width: 48px;
+        transform: scale(1.1);
+    }
+    
+    .hit-box {
+        width: 126px;
+        transform: translateX(-50%) scale(1.0);
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+        gap: 4px !important;
+    }
+    
+    .hit-container {
+        gap: 1px !important;
+    }
+
+    .hit-icon {
+        width: 10px;
+        height: 9px;
+    }
+    
+    .score-box {
+        width: 58px;
+        transform: scale(1.1);
+        min-width: 60px;
+        padding: 1px 4px !important;
+    }
+}
+
+.hand-tracking-ui {
+    position: absolute;
+    inset: 0;
+    z-index: 45;
+    pointer-events: none;
+}
+
+.hand-tracking-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.hand-tracking-controls {
+    position: absolute;
+    right: 40px;
+    bottom: 142px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    pointer-events: none;
+}
+
+/* Base style for the toggle - relative to the SHOT box on desktop */
+.hand-tracking-hud-toggle {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 46px;
+    padding: 4px 5px !important;
+    line-height: 1.2;
+    cursor: pointer;
+    border: none;
+    transform: scale(1.3);
+    transform-origin: bottom left;
+    margin-left: 86px;
+}
+
+.hand-tracking-hud-toggle:hover {
+    filter: brightness(1.08);
+}
+
+/* Adjust layout for mobile */
+@media (max-width: 768px) {
+    .hud-left-group {
+        position: absolute;
+    }
+
+    .hand-tracking-controls {
+        left: 16px !important;
+        right: 16px !important;
+        bottom: calc(95px + env(safe-area-inset-bottom, 0px)) !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: flex-end !important;
+        width: calc(100% - 32px) !important;
+    }
+
+    .hand-tracking-hud-toggle {
+        position: absolute !important;
+        left: 0 !important;
+        bottom: calc(100% + 30px) !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        transform: scale(1.05) !important;
+        transform-origin: bottom left !important;
+        z-index: 1;
+    }
+
+    .hand-tracking-preview-frame {
+        margin-left: auto !important;
+        margin-right: 0 !important;
+    }
+
+    .hand-tracking-preview,
+    .hand-tracking-preview-wrap,
+    .hand-tracking-preview-overlay {
+        width: 132px !important;
+        height: 99px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .hand-tracking-controls {
+        left: 14px !important;
+        right: 14px !important;
+        bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+        width: calc(100% - 28px) !important;
+    }
+
+    .hand-tracking-hud-toggle {
+        bottom: calc(100% + 24px) !important;
+        transform: scale(0.92) !important;
+    }
+}
+
+.hand-indicator-emoji {
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+    text-align: center;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.hand-indicator-label {
+    color: #8cd600;
+    font-size: 8px;
+    font-family: 'Joystick', monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: 2px;
+}
+
+.hand-tracking-hud-toggle.is-active {
+    box-shadow: 0 -4px #000, 0 -8px #ff6b6b, 4px 0 #000, 4px -4px #ff6b6b, 8px 0 #ff6b6b, 0 4px #000, 0 8px #ff6b6b, -4px 0 #000, -4px 4px #ff6b6b, -8px 0 #ff6b6b, -4px -4px #ff6b6b, 4px 4px #ff6b6b !important;
+    color: #ff9a9a !important;
+}
+
+.hand-tracking-hud-toggle.is-active .hand-indicator-label {
+    color: #ff9a9a;
+}
+
+.hand-tracking-overlay-toggle.hidden,
+.hand-tracking-hud-toggle.hidden {
+    display: none !important;
+}
+
+.hand-tracking-preview {
+    position: absolute;
+    inset: 0;
+    width: 168px;
+    height: 126px;
+    object-fit: cover;
+    background: rgba(0, 0, 0, 0.7);
+    transform: scaleX(-1);
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+.hand-tracking-preview-overlay {
+    position: absolute;
+    inset: 0;
+    width: 168px;
+    height: 126px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+.hand-tracking-preview.is-live {
+    opacity: 1;
+}
+
+.hand-tracking-preview.is-live + .hand-tracking-preview-overlay {
+    opacity: 1;
+}
+
+.hand-tracking-fire-flash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.92);
+    color: #fff36b;
+    text-shadow: 3px 3px 0 #000;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 18px;
+    opacity: 0;
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.hand-tracking-fire-flash.is-visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.hand-tracking-preview-frame {
+    position: relative;
+    padding: 0 !important;
+    background: transparent !important;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+.hand-tracking-preview-frame.is-live {
+    opacity: 1;
+}
+
+.hand-tracking-preview-wrap {
+    position: relative;
+    width: 168px;
+    height: 126px;
+}
+
+/* ─── Tutorial steps grid ─────────────────────────────── */
+
+/* Desktop: two side-by-side columns */
+.tutorial-steps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+/* Each step is a vertical stack on desktop */
+.tutorial-step-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Label variant for row layout (mobile) — left-aligned */
+.tutorial-step-label--row {
+    text-align: left;
+}
+
+/* Smaller thumbnail variant (used on mobile) */
+.tutorial-media-box--sm {
+    aspect-ratio: 4 / 3;
+}
+
+/* Modal inner scroll cap — desktop uses auto height */
+.tutorial-modal-inner {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* ─── Hand Tutorial Modal ─────────────────────────────── */
+
+@keyframes tutorialSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(28px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+#hand-tutorial-modal {
+    animation: none;
+}
+
+#hand-tutorial-modal:not(.hidden) {
+    animation: tutorialSlideIn 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tutorial-media-box {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #0a0a0a;
+    border: 2px dashed #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.tutorial-media-box img,
+.tutorial-media-box video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    image-rendering: pixelated;
+}
+
+.tutorial-step-label {
+    font-family: 'Joystick', monospace;
+    font-size: 9px;
+    color: #fff;
+    text-align: center;
+    line-height: 1.7;
+    letter-spacing: 0.5px;
+}
+
+.tutorial-step-label strong {
+    color: #8cd600;
+}
+
+#tutorial-play-btn {
+    transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+#tutorial-play-btn:hover {
+    transform: scale(1.06);
+}
+
+#tutorial-play-btn:active {
+    transform: scale(0.97);
+}
+
+#close-tutorial-btn {
+    transition: color 100ms ease;
+    line-height: 1;
+    padding: 4px 6px;
+}
+
+/* ─── Mobile tutorial overrides ───────────────────────── */
+@media (max-width: 640px) {
+    /* Cap modal height and enable scroll */
+    .tutorial-modal-inner {
+        max-height: calc(100dvh - 24px);
+        overflow-y: auto;
+        padding: 20px 16px 16px !important;
+        gap: 12px !important;
+    }
+
+    /* Switch steps to horizontal: thumbnail left, text right */
+    .tutorial-steps-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .tutorial-step-row {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+    }
+
+    /* Compact square thumbnail on mobile */
+    .tutorial-media-box--sm {
+        width: 100px;
+        height: 75px;
+        aspect-ratio: unset;
+        flex-shrink: 0;
+    }
+
+    /* Left-align text in row layout */
+    .tutorial-step-label--row {
+        text-align: left;
+        font-size: 8px;
+        line-height: 1.6;
+    }
+
+    /* Smaller title on mobile */
+    #hand-tutorial-modal h3 {
+        font-size: 10px !important;
+        letter-spacing: 1px !important;
+        padding-top: 20px;
+    }
+
+    /* Compact play button */
+    #tutorial-play-btn {
+        padding: 10px 28px !important;
+        font-size: 10px !important;
+    }
+}

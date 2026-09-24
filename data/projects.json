@@ -1,0 +1,31 @@
+{
+  "projects": [
+    {
+      "name": "IPO Tracker & Analysis Platform",
+      "slug": "ipo-tracker",
+      "description": "Backend system tracking IPO subscription data and Grey Market Premium (GMP) in near real-time. Scheduled ingestion every 30 minutes, time-series snapshots to analyze demand momentum, trend-based logic to detect accelerating vs cooling demand, and APIs exposing current state, history, and a final recommendation.",
+      "tech": ["Node.js", "React", "PostgreSQL", "Puppeteer"],
+      "urls": {
+        "live": "https://ipo-tracker-mvvr.onrender.com/"
+      }
+    },
+    {
+      "name": "LSM Tree Storage Engine",
+      "slug": "lsm-tree-storage-engine",
+      "description": "Custom LSM Tree storage engine implementing MemTable, SSTables, and Bloom filters, achieving 3,500+ writes/sec with 97% test coverage. Explores the concepts behind systems like RocksDB and Cassandra. Includes a live visualizer.",
+      "tech": ["Systems Programming", "Storage Engines"],
+      "urls": {
+        "live": "https://lsm-database-engine.onrender.com/visualizer"
+      }
+    },
+    {
+      "name": "OpenInference CLI",
+      "slug": "openinference-cli",
+      "description": "Hardware-aware package manager for local AI models. Profiles CPU, RAM, GPU, disk, and OS, then recommends models from a 150+ model catalog that will realistically run on the machine. Guided setup wizard, unattended mode, and Ollama as the inference backend. Published on npm, ~11,100 downloads/month, MIT licensed.",
+      "tech": ["TypeScript", "Node.js", "Commander.js"],
+      "urls": {
+        "live": "https://www.npmjs.com/package/@openinference/cli"
+      }
+    }
+  ]
+}

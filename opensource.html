@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Source | Sourav Rajvi</title>
+    <link rel="icon" type="image/png" href="assets/index/images/pixelboyhead.png">
+    <meta name="description" content="Open-source contributions by Sourav Rajvi — merged PRs across Unsloth AI, RAGFlow (InfiniFlow), Dify, LiteLLM, Mastra, and AnythingLLM.">
+    <meta name="keywords" content="sourav rajvi, open source, unsloth, ragflow, dify, litellm, mastra, anythingllm, software engineer">
+    <meta name="author" content="Sourav Rajvi">
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/global.css">
+    <style>
+
+        body {
+            background-color: black;
+            background-repeat: repeat;
+            background-position: top center;
+            background-attachment: scroll;
+            background-size: 30% auto;
+            color: white;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        .img {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="w-full">
+        <nav class="navbar boxxy">
+            <div class="navbar-desktop items-center justify-between w-full">
+                <div class="flex items-center gap-8">
+                    <a class="nav-item" href="opensource.html">OpenSource</a>
+                    <a class="nav-item" href="project.html">Projects</a>
+                    <a class="nav-item" href="study/index.html">Research</a>
+                </div>
+                <a href="/index.html" class="flex items-center justify-center">
+                    <img src="assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <div class="flex items-center gap-8">
+                    <a class="nav-item" href="about.html">About</a>
+                    <a class="nav-item" href="contact.html">Contact</a>
+                </div>
+            </div>
+            <!-- Hamburger menu -->
+            <div class="md:hidden flex items-center justify-between w-full">
+                <a href="/index.html" class="flex items-center justify-start">
+                    <img src="assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <button id="menu-toggle" class="flex items-center justify-end">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden absolute top-0 right-0 bg-black w-full mt-14 z-50 text-right">
+                <a class="block py-2 px-4 text-white" href="index.html">Home</a>
+                <a class="block py-2 px-4 text-white" href="project.html">Projects</a>
+                <a class="block py-2 px-4 text-white" href="study/index.html">Research</a>
+                <a class="block py-2 px-4 text-white" href="opensource.html">OpenSource</a>
+                <a class="block py-2 px-4 text-white" href="about.html">About</a>
+                <a class="block py-2 px-4 text-white" href="contact.html">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="py-6 mt-14 w-full px-4 sm:px-16 space-y-8 flex-grow">
+        <div class="text-center mb-4">
+            <p class="headingfont text-[10px] md:text-[12px] text-gray-300">50+ merged PRs across YC-backed AI infrastructure projects</p>
+        </div>
+
+        <div class="boxxy mb-6 p-4 mx-4">
+            <h2 class="text-xl font-semibold title"><a href="https://github.com/unslothai/unsloth" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Unsloth AI</a></h2>
+            <p class="text-gray-400 mt-1 text-sm">Contributor &middot; 70k+ GitHub stars &middot; unslothai/unsloth</p>
+            <p class="text-white mt-2 headingfont">Contributed 50+ merged pull requests to this open-source LLM fine-tuning and inference platform. Improved Unsloth Studio UX (touch sidebar support, model presets, token counts, Colab embeds, capability detection fixes), enhanced the cross-platform installer and GPU stack (Vulkan/ROCm routing, distro detection, dependency pinning), and fixed model-loading reliability (offline tokenizer loads, HF cache recovery, Deep Research context-window safety).</p>
+        </div>
+
+        <div class="boxxy mb-6 p-4 mx-4">
+            <h2 class="text-xl font-semibold title"><a href="https://github.com/infiniflow/ragflow" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">RAGFlow (InfiniFlow)</a></h2>
+            <p class="text-gray-400 mt-1 text-sm">Maintainer &mdash; MinerU PDF Parser &middot; 90k+ GitHub stars &middot; infiniflow/ragflow</p>
+            <p class="text-white mt-2 headingfont">Invited into the InfiniFlow GitHub organization as dedicated maintainer of RAGFlow's MinerU PDF/layout parser — triage, review, and follow-through on issues and PRs. Implemented MonkeyOCR as a dedicated PDF backend on top of the MinerU parser class. Fixed dataset Artifacts Tree silently failing on navigation API errors, and stopped agent-canvas autosave from wiping working pipelines by persisting an empty graph.</p>
+        </div>
+
+        <div class="boxxy mb-6 p-4 mx-4">
+            <h2 class="text-xl font-semibold title"><a href="https://github.com/langgenius/dify" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Dify</a></h2>
+            <p class="text-gray-400 mt-1 text-sm">Contributor &middot; 150k+ GitHub stars &middot; langgenius/dify</p>
+            <p class="text-white mt-2 headingfont">Contributions to this open-source LLM app development platform, working across agent tooling and workflow orchestration.</p>
+        </div>
+
+        <div class="boxxy mb-6 p-4 mx-4">
+            <h2 class="text-xl font-semibold title"><a href="https://github.com/BerriAI/litellm" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">LiteLLM</a></h2>
+            <p class="text-gray-400 mt-1 text-sm">Contributor &middot; 55k+ GitHub stars &middot; BerriAI/litellm</p>
+            <p class="text-white mt-2 headingfont">Contributions to this unified LLM API/proxy layer used to call 100+ LLM providers in the OpenAI format.</p>
+        </div>
+
+        <div class="boxxy mb-6 p-4 mx-4">
+            <h2 class="text-xl font-semibold title"><a href="https://github.com/mastra-ai/mastra" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">Mastra</a></h2>
+            <p class="text-gray-400 mt-1 text-sm">Contributor &middot; 27k+ GitHub stars &middot; mastra-ai/mastra</p>
+            <p class="text-white mt-2 headingfont">Contributions to this TypeScript AI agent framework, working on agent tooling and framework internals.</p>
+        </div>
+
+        <div class="boxxy mb-6 p-4 mx-4">
+            <h2 class="text-xl font-semibold title"><a href="https://github.com/Mintplex-Labs/anything-llm" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:underline">AnythingLLM</a></h2>
+            <p class="text-gray-400 mt-1 text-sm">Contributor &middot; 64k+ GitHub stars &middot; Mintplex-Labs/anything-llm</p>
+            <p class="text-white mt-2 headingfont">Contributions to this full-stack application for turning documents into a chat interface with any LLM, working on model management and API security.</p>
+        </div>
+
+        <div class="text-center mt-6">
+            <a href="https://github.com/Souravrajvi0" target="_blank" rel="noopener noreferrer"
+                class="inline-block boxxy px-4 py-2 bg-gray-700 text-white text-[10px] md:text-[12px] headingfont">View full GitHub profile →</a>
+        </div>
+    </main>
+
+    <footer class="flex flex-col md:flex-row items-center justify-center bg-gray-950 bg-opacity-50 py-6 w-full mt-10 gap-2 z-50">
+        <p class="text-white max-[320px]:text-[8px] text-[10px] lg:text-[16px]">Copyright © 2026 --</p>
+        <a href="mailto:souravrajvi@gmail.com"
+            class="text-white max-[320px]:text-[8px] text-[10px] lg:text-[16px] underline">souravrajvi@gmail.com</a>
+    </footer>
+
+    <script>
+        document.getElementById('menu-toggle').addEventListener('click', function () {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+    </script>
+    <script src="assets/js/bgm.js"></script>
+</body>
+
+</html>

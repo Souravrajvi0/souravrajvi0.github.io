@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Who am I? | Sourav Rajvi</title>
+    <link rel="icon" type="image/png" href="assets/index/images/pixelboyhead.png">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/about/about.css">
+    <link rel="stylesheet" href="assets/css/bubblechat.css">
+    <meta name="description" content="About Sourav Rajvi — Software Engineer focused on backend systems, distributed systems, and AI infrastructure. Retro portfolio, resume, and merged open-source PRs.">
+    <meta name="keywords" content="sourav rajvi, software engineer, backend engineer, retro, developer portfolio, pixel art">
+    <meta name="author" content="Sourav Rajvi">
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/utils/config.js"></script>
+</head>
+
+<body>
+    <header class="w-full">
+        <nav class="navbar boxxyw">
+            <div class="navbar-desktop items-center justify-between w-full">
+<div class="flex items-center gap-8">
+                    <a class="nav-item text-black" href="opensource.html">OpenSource</a>
+                    <a class="nav-item text-black" href="project.html">Projects</a>
+                    <a class="nav-item text-black" href="study/index.html">Research</a>
+                </div>
+                <a href="/index.html" class="flex items-center justify-center">
+                    <img src="assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <div class="flex items-center gap-8">
+                    <a class="nav-item text-black" href="about.html">About</a>
+                    <a class="nav-item text-black" href="contact.html">Contact</a>
+                </div>
+            </div>
+            <!-- Hamburger menu -->
+            <div class="md:hidden flex items-center justify-between w-full">
+                <a href="/index.html" class="flex items-center justify-start">
+                    <img src="assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <button id="menu-toggle" class="flex items-center justify-end">
+                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+<div id="mobile-menu" class="hidden absolute top-0 right-0 bg-white w-full mt-14 z-50 text-right">
+                <a class="block py-2 px-4 text-black" href="index.html">Home</a>
+                <a class="block py-2 px-4 text-black" href="project.html">Projects</a>
+                <a class="block py-2 px-4 text-black" href="study/index.html">Research</a>
+                <a class="block py-2 px-4 text-black" href="opensource.html">OpenSource</a>
+                <a class="block py-2 px-4 text-black" href="about.html">About</a>
+                <a class="block py-2 px-4 text-black" href="contact.html">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+
+
+    <div id="modal-bg" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div id="mobile-menu-modal" class="bg-white nes-container with-title is-centered">
+            <a href="/about.html" class="block px-4 py-2 text-black hover:underline hover:tracking-widest">About</a>
+            <a href="/project.html"
+                class="block px-4 py-2 text-black hover:underline hover:tracking-widest">Projects</a>
+            <button id="close-modal" class="mt-4 bulbula  px-4 py-2 text-white bg-red-500 shadow">Close</button>
+        </div>
+    </div>
+
+    <main class="relative w-full h-full overflow-hidden">
+        <div id="main" class="Headingfont section flex items-center justify-center bg-gray-500 z-3">
+            <img src="assets/about/images/chickcomputer.gif" alt="chickwithcomputer">
+        </div>
+
+
+        <div id="left"
+            class="section flex items-center justify-center transform -translate-x-full z-1 overflow-y-auto bg-cover bg-bottom img "
+            style="background-image: url('assets/about/images/rf_lg.gif');">
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-10 absolute top-[100px] px-4 w-full left-0 justify-items-center">
+                <div>
+                    <div
+                        class="boxxy p-2 w-[140px] h-[100px] md:w-36 md:h-32 lg:w-44 lg:h-40 flex flex-col justify-center items-center">
+                        <h3 class="text-sm lg:text-[18px] font-semibold text-center">Python</h3>
+                        <p class="hidden md:block mt-2 md:text-[8px] lg:text-[12px] text-start">Refreshing notes of
+                            python with examples</p>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="boxxy p-2 w-[140px] h-[100px] md:w-36 md:h-32 lg:w-44 lg:h-40 flex flex-col justify-center items-center">
+                        <h3 class="text-sm lg:text-[18px] font-semibold text-center">MongoDB</h3>
+                        <p class="hidden md:block mt-2 md:text-[8px] lg:text-[12px] text-start">Guide to use Mongodb in
+                            your code</p>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="boxxy p-2 w-[140px] h-[100px] md:w-36 md:h-32 lg:w-44 lg:h-40 flex flex-col justify-center items-center">
+                        <h3 class="text-sm lg:text-[18px] font-semibold text-center">JS</h3>
+                        <p class="hidden md:block mt-2 md:text-[8px] lg:text-[12px] text-start">JS notes covering all concepts</p>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="boxxy p-2 w-[140px] h-[100px] md:w-36 md:h-32 lg:w-44 lg:h-40 flex flex-col justify-center items-center">
+                        <h3 class="text-sm lg:text-[18px] font-semibold text-center text-[10px]">DSA Roadmap</h3>
+                        <p class="hidden md:block mt-2 md:text-[8px] lg:text-[12px] text-start">My personal DSA Roadmap</p>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="boxxy p-2 w-[140px] h-[100px] md:w-36 md:h-32 lg:w-44 lg:h-40 flex flex-col justify-center items-center">
+                        <h3 class="text-sm lg:text-[18px] font-semibold text-center text-[10px]">SQL Refresher</h3>
+                        <p class="hidden md:block mt-2 md:text-[8px] lg:text-[12px] text-start">From basic queries to advanced joins and optimization techniques</p>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="boxxy p-2 w-[140px] h-[100px] md:w-36 md:h-32 lg:w-44 lg:h-40 flex flex-col justify-center items-center">
+                        <h3 class="text-sm lg:text-[18px] font-semibold text-center">C++</h3>
+                        <p class="hidden md:block mt-2 md:text-[8px] lg:text-[12px] text-start">Quick guide to modern C++ features and best practices</p>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="boxxy p-2 w-[140px] h-[100px] md:w-36 md:h-32 lg:w-44 lg:h-40 flex flex-col justify-center items-center">
+                        <h3 class="text-sm lg:text-[18px] font-semibold text-center text-[10px]">C++ STL</h3>
+                        <p class="hidden md:block mt-2 md:text-[8px] lg:text-[12px] text-start">Essential containers and algorithms for efficient C++ coding</p>
+                    </div>
+                </div>
+                <div>
+                    <div
+                        class="boxxy p-2 w-[140px] h-[100px] md:w-36 md:h-32 lg:w-44 lg:h-40 flex flex-col justify-center items-center">
+                        <h3 class="text-sm lg:text-[18px] font-semibold text-center">Flask</h3>
+                        <p class="hidden md:block mt-2 md:text-[8px] lg:text-[12px] text-start">Flask notes for backend web development</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="right"
+            class="section flex items-center justify-end sm:justify-center md:justify-end bg-green-400 transform translate-x-full z-1">
+            <div class="flex flex-col md:flex-row items-center justify-center h-full mt-10 md:gap-2">
+                <div class="resume-container p-4 h-[70vh] md:h-[80vh] w-[45vh] md:w-full lg:w-[100vh]">
+                    <iframe src="cv.pdf#navpanes=0&toolbar=0&pagemode=none&view=FitH" width="100%" height="100%" style="border: none;">
+                        <p>It appears you don't have a PDF plugin for this browser. You can <a
+                                href="cv.pdf#navpanes=0&toolbar=0&pagemode=none&view=FitH">click here to download the PDF file.</a></p>
+                    </iframe>
+                </div>
+                <div class="flex flex-col items-center justify-center w-full gap-0 md:gap-4">
+                    <a href="cv.pdf" download="Sourav_Rajvi_CV.pdf" class="nes-btn mt-4 ">
+                        Download Resume
+                    </a>
+                    <div class="p-2 flex items-center justify-center gap-4">
+                        <a data-social="github" target="_blank" rel="noopener noreferrer"><img src="assets/images/logo/GHub.png" alt="github" class="img w-16 h-auto"></a>
+                        <a data-social="linkedin" href="https://www.linkedin.com/in/souravrajvi/" target="_blank" rel="noopener noreferrer"><img src="assets/images/logo/linkindin.png" alt="linkindin" class="img w-16 h-auto"></a>
+                        <a data-social="leetcode" target="_blank" rel="noopener noreferrer"><img src="assets/images/logo/dev_logo.png" alt="leetcode" class="img w-16 h-auto border-2 border-white"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="top"
+            class="section flex flex-col items-center justify-center bg-blue-400 transform -translate-y-full z-1">
+            <h2 class="text-[22px] md:text-[27px] text-center font-bold mb-4">My Configurations & Tools</h2>
+            <div class="flex flex-col md:flex-row items-center justify-evenly gap-8 md: p-4 w-full max-w-4xl mx-auto">
+                <div
+                    class="order-1 flex flex-row md:flex-col items-center space-x-4 md:space-y-8 md:space-x-0 boxxy p-3">
+                    <a data-tool="vscode" target="_blank" class="hover:opacity-75">
+                        <img src="assets/about/asprites/vscode.png" alt="VSCode" class="img w-32 h-auto">
+                    </a>
+                </div>
+                <div
+                    class="order-2 flex flex-row md:flex-col items-center space-x-4 md:space-y-8 md:space-x-0 boxxy p-3">
+                    <a data-tool="photoshop" target="_blank" class="hover:opacity-75">
+                        <img src="assets/about/asprites/photoshop.png" alt="photoshop" class="img w-32 h-auto">
+                    </a>
+                    <a data-tool="discord" target="_blank" class="hover:opacity-75">
+                        <img src="assets/about/asprites/discord.png" alt="discord" class="img w-32 h-auto">
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="bottom" class="section flex flex-col md:flex-row items-center justify-center bg-yellow-400 transform translate-y-full z-1">
+            <div class="artwork-title-wrapper">
+                <h2 class="text-lg mx-1 md:text-2xl md:mx-4  tracking-[16px] title">PRs MERGED</h2>
+            </div>
+            <div class="artwork-container grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-4 pr-2">
+                <!-- merged PR cards rendered by about.js -->
+            </div>
+        </div>
+
+
+        <div id="pagination-controls" class="pagination-controls hidden fixed bottom-0 left-1/2 -translate-x-1/2 md:left-auto md:bottom-0 md:right-2 md:translate-x-0 z-50 w-fit items-center justify-center gap-2 bg-black/70 px-3 py-2 border-2 border-white">
+            <button id="prev-page" class="nes-btn text-[5px]" disabled>Previous</button>
+            <span id="page-info" class="mx-2">1</span>
+            <button id="next-page" class="nes-btn text-[5px]">Next</button>
+        </div>
+
+
+        <button id="navigate-left"
+            class="navigate-button absolute top-1/2 left-0 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white z-4">Notes</button>
+        <button id="navigate-right"
+            class="navigate-button absolute top-1/2 right-0 transform -translate-y-1/2 p-2 bg-black bg-opacity-50 text-white z-4">CV</button>
+        <button id="navigate-top"
+            class="navigate-button absolute top-12 left-1/2 transform -translate-x-1/2 p-2 bg-black bg-opacity-50 text-white z-4">Config</button>
+        <button id="navigate-bottom"
+            class="navigate-button absolute bottom-0 left-1/2 transform -translate-x-1/2 p-2 bg-black bg-opacity-50 text-white z-4">PRs</button>
+    </main>
+
+    <script src="assets/js/utils/constants.js"></script>
+    <script src="assets/about/about.js"></script>
+    <script src="assets/js/bgm.js"></script>
+</body>
+
+</html>

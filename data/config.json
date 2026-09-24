@@ -1,0 +1,28 @@
+{
+  "social": {
+    "github": "https://github.com/Souravrajvi0",
+    "linkedin": "https://www.linkedin.com/in/souravrajvi/",
+    "leetcode": "https://leetcode.com/souravrajvi0/"
+  },
+  "projects": {
+    "ipoTracker": {
+      "live": "https://ipo-tracker-mvvr.onrender.com/"
+    },
+    "lsmEngine": {
+      "live": "https://lsm-database-engine.onrender.com/visualizer"
+    },
+    "openInferenceCli": {
+      "live": "https://www.npmjs.com/package/@openinference/cli"
+    }
+  },
+  "tools": {
+    "vscode": "https://code.visualstudio.com/",
+    "photoshop": "https://www.adobe.com/in/products/photoshop.html",
+    "discord": "https://discord.com/"
+  },
+  "githubStats": {
+    "username": "Souravrajvi0",
+    "defaultStars": "70000",
+    "defaultContributions": "500"
+  }
+}

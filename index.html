@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sourav Rajvi</title>
+    <meta name="description" content="Portfolio of Sourav Rajvi — Software Engineer focused on backend systems, distributed systems, databases, and AI infrastructure. SDE @ Planys Technologies, Core Contributor @ Unsloth AI.">
+    <meta name="keywords" content="sourav rajvi, software engineer, backend engineer, distributed systems, ai infrastructure, unsloth, developer portfolio, pixel art">
+    <meta name="author" content="Sourav Rajvi">
+
+    <!-- Open Graph / Social SEO -->
+    <meta property="og:title" content="Sourav Rajvi">
+    <meta property="og:description" content="Portfolio of Sourav Rajvi — Software Engineer focused on backend systems, distributed systems, databases, and AI infrastructure. SDE @ Planys Technologies, Core Contributor @ Unsloth AI.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://souravrajvi0.github.io/">
+    <meta property="og:image" content="https://souravrajvi0.github.io/assets/index/images/pixelboyhead.png">
+
+    <!-- Structured Data for AI/SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "Sourav Rajvi",
+      "jobTitle": "Software Engineer",
+      "url": "https://souravrajvi0.github.io/",
+      "sameAs": [
+        "https://github.com/Souravrajvi0",
+        "https://www.linkedin.com/in/souravrajvi/"
+      ]
+    }
+    </script>
+
+    <link rel="icon" type="image/png" href="assets/index/images/pixelboyhead.png">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/index/styles.css">
+    <link rel="stylesheet" href="assets/css/bubblechat.css">
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/utils/config.js"></script>
+    <style>
+        /* Highlighted yellow CTA chat bubble */
+        .bubble.bubble-hire {
+            background-color: #ffcc00 !important; /* Retro gold yellow */
+            color: #000000 !important;
+            box-shadow: 0 -4px #ffcc00, 0 -8px #000, 4px 0 #ffcc00, 4px -4px #000, 8px 0 #000, 0 4px #ffcc00, 0 8px #000, -4px 0 #ffcc00, -4px 4px #000, -8px 0 #000, -4px -4px #000, 4px 4px #000, 4px 12px rgba(0, 0, 0, 0.2), 12px 12px rgba(0, 0, 0, 0.2), 8px 8px rgba(0, 0, 0, 0.2) !important;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            text-decoration: none;
+        }
+
+        .bubble.bubble-hire:hover {
+            background-color: #ffe066 !important; /* Lighter yellow hover */
+            transform: scale(1.05);
+            box-shadow: 0 -4px #ffe066, 0 -8px #000, 4px 0 #ffe066, 4px -4px #000, 8px 0 #000, 0 4px #ffe066, 0 8px #000, -4px 0 #ffe066, -4px 4px #000, -8px 0 #000, -4px -4px #000, 4px 4px #000, 4px 16px rgba(0, 0, 0, 0.3), 16px 16px rgba(0, 0, 0, 0.3), 10px 10px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .bubble.bubble-hire.left::after {
+            background: #ffcc00 !important;
+            box-shadow: -4px -4px #ffcc00, -4px 0 #ffcc00, -8px 0 #ffcc00, 0 -8px #ffcc00, -4px 4px #000, -8px 4px #000, -12px 4px #000, -16px 4px #000, -12px 0 #000, -8px -4px #000, -4px -8px #000, 0 -4px #ffcc00 !important;
+        }
+
+        .bubble.bubble-hire:hover.left::after {
+            background: #ffe066 !important;
+            box-shadow: -4px -4px #ffe066, -4px 0 #ffe066, -8px 0 #ffe066, 0 -8px #ffe066, -4px 4px #000, -8px 4px #000, -12px 4px #000, -16px 4px #000, -12px 0 #000, -8px -4px #000, -4px -8px #000, 0 -4px #ffe066 !important;
+        }
+
+        /* Testimonial Infinite Scrolling Ticker */
+        @media (min-width: 768px) {
+            .testimonial-outer-box {
+                width: 91.666667% !important;
+                max-width: 1200px !important;
+                margin: 0 auto !important;
+            }
+
+            .review-card .flex-grow p {
+                font-size: 10px !important;
+                line-height: 1.4 !important;
+            }
+
+            .testimonial-slider-container {
+                overflow: hidden;
+                width: 100%;
+                position: relative;
+                padding: 15px 0;
+                display: flex;
+            }
+
+            .testimonial-track {
+                display: flex;
+                width: max-content;
+                animation: marquee 50s linear infinite;
+            }
+
+            .testimonial-track:hover {
+                animation-play-state: paused;
+            }
+
+            @keyframes marquee {
+                0% {
+                    transform: translateX(0);
+                }
+                100% {
+                    transform: translateX(-50%);
+                }
+            }
+        }
+
+        /* 1-bit Testimony Sprite Pfps */
+        .pfp-sprite {
+            width: 64px;
+            height: 64px;
+            background-image: url('assets/index/images/testimony_sprites.jpg');
+            background-size: 256px 256px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            background-repeat: no-repeat;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+            display: inline-block;
+        }
+
+        .pfp-sprite-0 { background-position: 0px 0px; }
+        .pfp-sprite-1 { background-position: -64px 0px; }
+        .pfp-sprite-2 { background-position: -128px 0px; }
+        .pfp-sprite-3 { background-position: -192px 0px; }
+        .pfp-sprite-4 { background-position: 0px -64px; }
+        .pfp-sprite-5 { background-position: -64px -64px; }
+        .pfp-sprite-6 { background-position: -128px -64px; }
+        .pfp-sprite-7 { background-position: -192px -64px; }
+        .pfp-sprite-8 { background-position: 0px -128px; }
+        .pfp-sprite-9 { background-position: -64px -128px; }
+        .pfp-sprite-10 { background-position: -128px -128px; }
+    </style>
+</head>
+
+<body>
+    <header class="w-full">
+        <nav class="navbar">
+            <div class="navbar-desktop items-center justify-between w-full">
+                <div class="flex items-center gap-8">
+                    <a class="nav-item" href="opensource.html">OpenSource</a>
+                    <a class="nav-item" href="project.html">Projects</a>
+                    <a class="nav-item" href="study/index.html">Research</a>
+                </div>
+                <a href="/index.html" class="flex items-center justify-center">
+                    <img src="assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <div class="flex items-center gap-8">
+                    <a class="nav-item" href="about.html">About</a>
+                    <a class="nav-item" href="contact.html">Contact</a>
+                </div>
+            </div>
+            <!-- Hamburger menu -->
+            <div class="md:hidden flex items-center justify-between w-full">
+                <a href="/index.html" class="flex items-center justify-start">
+                    <img src="assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <button id="menu-toggle" class="flex items-center justify-end">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden absolute top-0 right-0 bg-black w-full mt-14 z-50 text-right">
+                <a class="block py-2 px-4 text-white" href="index.html">Home</a>
+                <a class="block py-2 px-4 text-white" href="project.html">Projects</a>
+                <a class="block py-2 px-4 text-white" href="study/index.html">Research</a>
+                <a class="block py-2 px-4 text-white" href="opensource.html">OpenSource</a>
+                <a class="block py-2 px-4 text-white" href="about.html">About</a>
+                <a class="block py-2 px-4 text-white" href="contact.html">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+    <div class="section text-white min-h-screen flex flex-col items-center justify-center z-20">
+        <img src="assets/index/images/blast.png" alt="Top Image" class="img top-image lg:hidden">
+        <div class="img bogusimage h-4/12 w-10/12 md:w-8/12 lg:w-5/12 top-20 z-10" id="image"></div>
+        <div class="flex flex-col sm:flex-row items-center justify-evenly w-full gap-6 my-5 sm:my-8">
+            <div class="order-2 sm:order-1 text-center">
+                <p>PRs<br>Merged in 2026</p>
+                <p id="stars-count">100+</p>
+            </div>
+            <img id="astronautImage" src="assets/index/images/astronaut.png" alt="Astronaut"
+                class="img order-1 sm:order-2 astronaut w-3/6 min-[430px]:w-5/12 sm:w-4/12 md:w-3/12 xl:w-2/12 z-50">
+            <div class="order-3 text-center">
+                <p>Total<br>Commits</p>
+                <div class="text-center">
+                    <p id="total-contributions">500</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section text-white z-10">
+        <img src="assets/index/images/smallplanetleft.png" alt="Left Image"
+            class="img left-image w-[25%] min-[425px]:w-[20%] md:w-[15%] top-[20%]">
+        <img src="assets/index/images/smallplanetright.png" alt="Right Image"
+            class="img right-image w-[30%] min-[425px]:w-[20%] md:w-[15%] z-0 top-[90%] ">
+
+        <div
+            class="flex flex-col items-center justify-center min-h-screen w-full md:w-3/4 lg:h-full mt-14 lg:mt-5 z-30">
+            <div class="bg-gray-900 bg-opacity-50 py-3 w-full flex flex-col">
+                <div class="message flex items-center justify-start">
+                    <img src="assets/index/images/pixelboyhead.png" alt="Sourav Avatar"
+                        class="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 ml-3 mt-2">
+                    <div
+                        class="bubble w-fit left shadow h-[30px]  lg:h-[40px]  text-[10px] md:text-[14px] lg:text-[20px]">
+                        Hello</div>
+                </div>
+                <div class="message flex items-center justify-end">
+                    <div
+                        class="bubble w-fit right shadow  h-[30px] lg:h-[40px]  text-[10px] md:text-[14px] lg:text-[20px]">
+                        Who are you?</div>
+                    <img src="assets/index/images/boyheadright.png" alt="User Avatar"
+                        class="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 mr-3 mt-2 ">
+                </div>
+                <div class="message flex items-center justify-start">
+                    <img src="assets/index/images/pixelboyhead.png" alt="Sourav Avatar"
+                        class="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 ml-3 mt-2">
+                    <div
+                        class="bubble w-fit left shadow  h-[30px] lg:h-[40px]  text-[10px] md:text-[14px] lg:text-[20px]">
+                        I am Sourav Rajvi</div>
+                </div>
+                <div class="message flex items-center justify-start">
+                    <img src="assets/index/images/pixelboyhead.png" alt="Sourav Avatar"
+                        class="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 ml-3 mt-2">
+                    <p class="bubble w-fit left shadow  h-[40px] lg:h-[40px] text-[10px] md:text-[14px] lg:text-[20px]">
+                        I am
+                        <span class="typewriter nocaret"></span>
+                    </p>
+                </div>
+                <div class="message flex items-center justify-end">
+                    <div
+                        class="bubble w-fit right shadow  h-[45px] lg:h-[40px] text-[10px] md:text-[14px] lg:text-[20px]">
+                        Wow thats great</div>
+                    <img src="assets/index/images/boyheadright.png" alt="User Avatar"
+                        class="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 mr-3 mt-2"></img>
+                </div>
+                <div class="message flex items-center justify-start">
+                    <img src="assets/index/images/pixelboyhead.png" alt="Sourav Avatar"
+                        class="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 ml-3 mt-2">
+                    <a href="contact.html"
+                        class="bubble bubble-hire w-fit left shadow h-[30px] lg:h-[40px] text-[10px] md:text-[14px] lg:text-[20px] font-bold flex items-center justify-center">Hire Me!</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="section text-white">
+        <img src="assets/index/images/bigplanetwithsmallplanet.png" alt="Left Center Image"
+            class="img left-center-image w-1/2 min-[425px]:w-[30%] md:w-[25%] xl:w-[20%] top-[20%]">
+        <div class="flex flex-col md:flex-row min-h-screen">
+            <div class="flex-1 flex items-center justify-center md:min-h-screen   ">
+                <div class="border-4 border-white w-11/12 h-9/12 m-5 md:my-10 bg-[#5f5fec] text-white">
+                    <p class="bg-black p-1 text-white text-[9px] md:text-[16px] lg:text-[23px] border-b-4 border-white">
+                        About me!</p>
+                    <p class="text-[9px] md:text-[14px] lg:text-[18px] text-start p-1 my-5 headingfont">
+                        Hello! I'm Sourav Rajvi, a Software Engineer focused on backend systems, distributed systems, databases, and AI infrastructure. At Planys Technologies I build and improve backend systems for a deep-tech product, and I'm a core contributor to Unsloth AI (YC S24) with 50+ merged PRs across Studio, the installer/GPU stack, and model loading. I built an LSM Tree storage engine hitting 3,500+ writes/sec and OpenInference CLI, a hardware-aware package manager for local AI models. LeetCode 2000+ rated (top 6% globally). Let's collaborate!
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center z-30">
+                <div class="border-r-4 border-l-4 border-t-4 border-white w-11/12 h-2/12 bg-black">
+                    <div class="flex">
+                        <div class="flex items-center justify-start mt-[4px] ml-1 gap-1">
+                            <div class="rounded-full bg-red-600 w-4 h-4"></div>
+                            <div class="rounded-full bg-yellow-400 w-4 h-4"></div>
+                            <div class="rounded-full bg-green-600 w-4 h-4"></div>
+                        </div>
+                        <div class="flex items-center justify-center w-full">
+                            <div class="mt-[6px] text-center text-[14px]  text-white">
+                                /home/mypc
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="terminal"
+                    class="p-3 bg-[#282828] border-4 border-white text-[#33FF33] w-11/12 h-[200px] md:h-[300px] text-left text-[10px] md:text-[14px] headingfont">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section text-white">
+        <div class="relative md:min-h-screen flex flex-col items-center justify-center py-10">
+            <div class="bg-gray-950 bg-opacity-70 relative w-[95%] md:w-11/12 lg:w-10/12 xl:w-9/12 p-6 md:p-10 lg:p-12 z-10 border-4 border-white text-left">
+                <h2 class="text-center text-xl md:text-3xl lg:text-4xl mb-12 headingfont text-[#ffcc00]">Work Experience</h2>
+                <div class="flex flex-col gap-10">
+                    <div class="border-l-4 border-white pl-4 md:pl-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-1">
+                            <h3 class="headingfont text-[11px] sm:text-[13px] md:text-[16px] lg:text-[18px] text-white">Software Engineer</h3>
+                            <span class="headingfont text-[9px] sm:text-[10px] md:text-[12px] lg:text-[13px] text-gray-400">Mar 2026 – Present</span>
+                        </div>
+                        <p class="headingfont text-[10px] sm:text-[12px] md:text-[14px] lg:text-[15px] text-blue-400 mb-3">Planys Technologies</p>
+                        <ul class="list-disc list-inside text-[9px] sm:text-[11px] md:text-[13px] lg:text-[14px] text-gray-300 space-y-2 headingfont leading-relaxed">
+                            <li>Refactored fragile legacy Node.js/Express backend, decoupling authentication from database infrastructure and redesigning runtime configuration — reducing onboarding setup time by 40%</li>
+                            <li>Migrated authentication to environment-based secure configuration, eliminating 2 critical system dependencies and reducing runtime initialization complexity by 30%</li>
+                            <li>Streamlined Docker and startup workflows, cutting service cold-start time from 45s to 18s (60% improvement)</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-4 border-white pl-4 md:pl-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-1">
+                            <h3 class="headingfont text-[11px] sm:text-[13px] md:text-[16px] lg:text-[18px] text-white">Contributor</h3>
+                            <span class="headingfont text-[9px] sm:text-[10px] md:text-[12px] lg:text-[13px] text-gray-400">Jan 2026 – Present</span>
+                        </div>
+                        <p class="headingfont text-[10px] sm:text-[12px] md:text-[14px] lg:text-[15px] text-blue-400 mb-3">Unsloth AI (YC S24)</p>
+                        <ul class="list-disc list-inside text-[9px] sm:text-[11px] md:text-[13px] lg:text-[14px] text-gray-300 space-y-2 headingfont leading-relaxed">
+                            <li>Contributed 50+ merged pull requests to unslothai/unsloth (70k+ GitHub stars)</li>
+                            <li>Improved Unsloth Studio UX: touch sidebar support, model presets, token counts, Colab embeds</li>
+                            <li>Enhanced cross-platform installer & GPU stack: Vulkan/ROCm routing, distro detection</li>
+                            <li>Fixed model-loading reliability: offline tokenizer loads, HF cache recovery, Deep Research context-window safety</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-4 border-white pl-4 md:pl-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-1">
+                            <h3 class="headingfont text-[11px] sm:text-[13px] md:text-[16px] lg:text-[18px] text-white">Maintainer — MinerU PDF Parser @ RAGFlow</h3>
+                            <span class="headingfont text-[9px] sm:text-[10px] md:text-[12px] lg:text-[13px] text-gray-400">Sep 2026 – Present</span>
+                        </div>
+                        <p class="headingfont text-[10px] sm:text-[12px] md:text-[14px] lg:text-[15px] text-blue-400 mb-3">InfiniFlow</p>
+                        <ul class="list-disc list-inside text-[9px] sm:text-[11px] md:text-[13px] lg:text-[14px] text-gray-300 space-y-2 headingfont leading-relaxed">
+                            <li>Maintainer of RAGFlow's (90K+ GitHub stars) MinerU PDF/layout parser: triage, review, and follow-through on issues and PRs</li>
+                            <li>Implemented MonkeyOCR as a dedicated PDF backend on top of the MinerU parser class</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-4 border-white pl-4 md:pl-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-1">
+                            <h3 class="headingfont text-[11px] sm:text-[13px] md:text-[16px] lg:text-[18px] text-white">Software Engineer</h3>
+                            <span class="headingfont text-[9px] sm:text-[10px] md:text-[12px] lg:text-[13px] text-gray-400">May 2025 – Mar 2026</span>
+                        </div>
+                        <p class="headingfont text-[10px] sm:text-[12px] md:text-[14px] lg:text-[15px] text-blue-400 mb-3">AGSuite Technologies</p>
+                        <ul class="list-disc list-inside text-[9px] sm:text-[11px] md:text-[13px] lg:text-[14px] text-gray-300 space-y-2 headingfont leading-relaxed">
+                            <li>Architected AWS-based middleware on EC2 bridging NetSuite/Zoho, with secure Base64-to-binary file upload pipelines via REST APIs</li>
+                            <li>Engineered an LLM-powered chatbot using SuiteScript 2.1 and AI-driven intent classification, reducing manual documentation lookup time by 20%</li>
+                            <li>Optimized data pipelines processing 1,000+ daily financial records, resulting in a 70% reduction in manual data entry</li>
+                        </ul>
+                    </div>
+                    <div class="border-l-4 border-white pl-4 md:pl-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-1">
+                            <h3 class="headingfont text-[11px] sm:text-[13px] md:text-[16px] lg:text-[18px] text-white">Software Engineer Intern</h3>
+                            <span class="headingfont text-[9px] sm:text-[10px] md:text-[12px] lg:text-[13px] text-gray-400">Aug 2024 – Jan 2025</span>
+                        </div>
+                        <p class="headingfont text-[10px] sm:text-[12px] md:text-[14px] lg:text-[15px] text-blue-400 mb-3">Amazon</p>
+                        <ul class="list-disc list-inside text-[9px] sm:text-[11px] md:text-[13px] lg:text-[14px] text-gray-300 space-y-2 headingfont leading-relaxed">
+                            <li>Optimized Payment Contract website, reducing load time from 29s to 4s (Java, Spring Boot, Ruby on Rails)</li>
+                            <li>Resolved a critical regression enabling 100% success rate traffic rollback, reducing critical errors by 17%</li>
+                            <li>Developed backend validation checks for Phased Rollout, reducing client churn tickets from 3 to 1</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section text-white">
+        <div class="relative md:min-h-screen flex flex-col items-center justify-center py-10">
+            <div class="bg-gray-950 bg-opacity-70 relative testimonial-outer-box py-4 md:py-8 px-0 z-10 border-4 border-white">
+                <h2 class="text-center text-2xl md:text-3xl lg:text-4xl mb-2 headingfont">What People Say</h2>
+                <p class="text-center text-[8px] md:text-[10px] text-gray-400 mb-8 md:mb-12 headingfont">recommendations from LinkedIn</p>
+
+                <div class="testimonial-slider-container">
+                    <div class="testimonial-track">
+                        <!-- SET 1 -->
+                        <div class="review-card boxxy w-[280px] md:w-[300px] flex-shrink-0 mr-6 p-4 flex flex-col justify-between">
+                            <div class="flex flex-col items-center mb-4">
+                                <div class="pfp-sprite pfp-sprite-0 mb-2"></div>
+                                <h3 class="text-lg font-bold">Abhijeet Singhaniya</h3>
+                                <p class="text-[10px] text-gray-400">SDE-II @ NIUM | Ex-SDE @ Amazon</p>
+                            </div>
+                            <div class="flex justify-center mb-2">
+                                <span class="text-yellow-400">★★★★★</span>
+                            </div>
+                            <div class="flex-grow flex items-center justify-center">
+                                <p class="text-center text-xs">
+                                    "Sourav and I have worked together on multiple projects and his backend engineering skills are genuinely solid. His grasp of Java, Spring Boot, and RESTful API design is strong, and he has a natural instinct for building microservices that are clean, modular, and built to scale."</p>
+                            </div>
+                        </div>
+
+                        <div class="review-card boxxy w-[280px] md:w-[300px] flex-shrink-0 mr-6 p-4 flex flex-col justify-between">
+                            <div class="flex flex-col items-center mb-4">
+                                <div class="pfp-sprite pfp-sprite-1 mb-2"></div>
+                                <h3 class="text-lg font-bold">Samir Kumar</h3>
+                                <p class="text-[10px] text-gray-400">Building AI Infrastructure @ RedHat</p>
+                            </div>
+                            <div class="flex justify-center mb-2">
+                                <span class="text-yellow-400">★★★★★</span>
+                            </div>
+                            <div class="flex-grow flex items-center justify-center">
+                                <p class="text-center text-xs">
+                                    "I've worked with Sourav on multiple projects and honestly, he's one of the more well-rounded engineers I've collaborated with. He's comfortable across the stack — Java backend, RESTful APIs, and microservices on one end, and Docker, Kubernetes, and AWS deployments on the other."</p>
+                            </div>
+                        </div>
+
+                        <!-- SET 2 (Duplicate for Infinite Loop) -->
+                        <div class="review-card boxxy w-[280px] md:w-[300px] flex-shrink-0 mr-6 p-4 flex flex-col justify-between">
+                            <div class="flex flex-col items-center mb-4">
+                                <div class="pfp-sprite pfp-sprite-0 mb-2"></div>
+                                <h3 class="text-lg font-bold">Abhijeet Singhaniya</h3>
+                                <p class="text-[10px] text-gray-400">SDE-II @ NIUM | Ex-SDE @ Amazon</p>
+                            </div>
+                            <div class="flex justify-center mb-2">
+                                <span class="text-yellow-400">★★★★★</span>
+                            </div>
+                            <div class="flex-grow flex items-center justify-center">
+                                <p class="text-center text-xs">
+                                    "Sourav and I have worked together on multiple projects and his backend engineering skills are genuinely solid. His grasp of Java, Spring Boot, and RESTful API design is strong, and he has a natural instinct for building microservices that are clean, modular, and built to scale."</p>
+                            </div>
+                        </div>
+
+                        <div class="review-card boxxy w-[280px] md:w-[300px] flex-shrink-0 mr-6 p-4 flex flex-col justify-between">
+                            <div class="flex flex-col items-center mb-4">
+                                <div class="pfp-sprite pfp-sprite-1 mb-2"></div>
+                                <h3 class="text-lg font-bold">Samir Kumar</h3>
+                                <p class="text-[10px] text-gray-400">Building AI Infrastructure @ RedHat</p>
+                            </div>
+                            <div class="flex justify-center mb-2">
+                                <span class="text-yellow-400">★★★★★</span>
+                            </div>
+                            <div class="flex-grow flex items-center justify-center">
+                                <p class="text-center text-xs">
+                                    "I've worked with Sourav on multiple projects and honestly, he's one of the more well-rounded engineers I've collaborated with. He's comfortable across the stack — Java backend, RESTful APIs, and microservices on one end, and Docker, Kubernetes, and AWS deployments on the other."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer class="flex flex-col md:flex-row items-center justify-center bg-gray-950 bg-opacity-50 py-6 w-full mt-10 gap-2 z-50">
+        <p class="text-white max-[320px]:text-[8px] text-[10px] lg:text-[16px]">Copyright © 2026 --</p>
+        <a href="mailto:souravrajvi@gmail.com"
+            class="text-white max-[320px]:text-[8px] text-[10px] lg:text-[16px] underline">souravrajvi@gmail.com</a>
+    </footer>
+
+    <script src="assets/js/utils/constants.js"></script>
+    <script src="assets/index/index.js"></script>
+    <script src="assets/js/bgm.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects | Sourav Rajvi</title>
+    <link rel="icon" type="image/png" href="assets/index/images/pixelboyhead.png">
+    <link rel="stylesheet" href="assets/css/global.css">
+    <link rel="stylesheet" href="assets/projects/project.css">
+    <meta name="description" content="Projects by Sourav Rajvi — Software Engineer focused on backend systems, distributed systems, and AI infrastructure.">
+    <meta name="keywords" content="sourav rajvi, software engineer, backend engineer, retro, developer portfolio, pixel art">
+    <meta name="author" content="Sourav Rajvi">
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/utils/config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@4.0.6/dist/locomotive-scroll.min.js"></script>
+</head>
+
+<body class="flex flex-col min-h-screen overflow-hidden">
+    <header class="w-full">
+        <nav class="navbar boxxyw">
+            <div class="navbar-desktop items-center justify-between w-full">
+                <div class="flex items-center gap-8">
+                    <a class="nav-item text-black" href="opensource.html">OpenSource</a>
+                    <a class="nav-item text-black" href="project.html">Projects</a>
+                    <a class="nav-item text-black" href="study/index.html">Research</a>
+                </div>
+                <a href="/index.html" class="flex items-center justify-center">
+                    <img src="assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <div class="flex items-center gap-8">
+                    <a class="nav-item text-black" href="about.html">About</a>
+                    <a class="nav-item text-black" href="contact.html">Contact</a>
+                </div>
+            </div>
+            <!-- Hamburger menu -->
+            <div class="md:hidden flex items-center justify-between w-full">
+                <a href="/index.html" class="flex items-center justify-start">
+                    <img src="assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <button id="menu-toggle" class="flex items-center justify-end">
+                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden absolute top-0 right-0 bg-white w-full mt-14 z-50 text-right">
+                <a class="block py-2 px-4 text-black" href="index.html">Home</a>
+                <a class="block py-2 px-4 text-black" href="project.html">Projects</a>
+                <a class="block py-2 px-4 text-black" href="study/index.html">Research</a>
+                <a class="block py-2 px-4 text-black" href="opensource.html">OpenSource</a>
+                <a class="block py-2 px-4 text-black" href="about.html">About</a>
+                <a class="block py-2 px-4 text-black" href="contact.html">Contact</a>
+            </div>
+        </nav>
+    </header>
+
+
+    <div class="scroll-container" id="scrollContainer">
+        <div class="section-wrapper" id="sectionWrapper">
+            <div class="section">
+                <div class="flex flex-col items-center justify-center gap-6 w-full">
+                    <div class="box w-2/3">
+                        <div class="content fonty tracking-wider md:text-[60px] text-center">
+                            <p>My</p>
+                            <p>Projects</p>
+                        </div>
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                    </div>
+                    <div class="z-50 text-center">
+                        <p class="desktop-only headingfont text-[10px] md:text-[12px] text-white animate-pulse normal-case tracking-normal bg-black bg-opacity-70 border-2 border-white px-4 py-2 shadow-[4px_4px_0px_0px_#000] rounded-none">Scroll down/up (wheel) to explore horizontally →</p>
+                        <p class="mobile-only headingfont text-[9px] text-white animate-pulse normal-case tracking-normal bg-black bg-opacity-70 border-2 border-white px-3 py-1.5 shadow-[4px_4px_0px_0px_#000] rounded-none mx-auto max-w-[280px]">Swipe left to right (or right to left) to explore →</p>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="container mx-auto w-11/12 md:w-11/12 z-50">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-0">
+                        <div class="order-2 flex flex-col items-center justify-center gap-4 ">
+                            <div
+                                class="row-span-1 flex flex-col p-1 border-2 md:border-4 border-black w-full md:w-3/4 text-[10px] lg:text-[14px] text-white bg-black bg-opacity-50">
+                                <p class="desctext">
+                                    IPO Tracker &mdash; Backend system tracking IPO subscription data and Grey Market
+                                    Premium (GMP) in near real-time. Scheduled ingestion pipeline (every 30 min), time-series
+                                    snapshots to analyze demand momentum, trend-based logic to detect accelerating vs
+                                    cooling demand, and APIs exposing current state, history, and a final recommendation.
+                                    Built with Puppeteer, PostgreSQL, and Node.js/React.
+                                </p>
+                            </div>
+                            <div class="row-span-1 flex justify-around w-full">
+                                <a href="https://ipo-tracker-mvvr.onrender.com/" target="_blank" rel="noopener noreferrer" title="Live">
+                                    <img src="assets/images/logo/linkredirect.gif" alt="live" class="w-10" />
+                                </a>
+                            </div>
+                        </div>
+                        <div class="order-1 flex justify-center items-center">
+                            <div class="box h-[70px] md:h-[90px] lg:h-[150px] w-fit md:w-2/3 mb-4 lg:mb-0">
+                                <div
+                                    class="content fonty text-[20px] lg:text-[32px] tracking-wider px-10 lg:px-5 mt-2 text-center">
+                                    IPO Tracker
+                                </div>
+                                <div class="corner top-left"></div>
+                                <div class="corner top-right"></div>
+                                <div class="corner bottom-left"></div>
+                                <div class="corner bottom-right"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="container mx-auto w-11/12 md:w-11/12 z-50">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-0">
+                        <div class="order-2 flex flex-col items-center justify-center gap-4 ">
+                            <div
+                                class="row-span-1 flex flex-col p-1 border-2 md:border-4 border-black w-full md:w-3/4 text-[10px] lg:text-[14px] text-white bg-black bg-opacity-50">
+                                <p class="desctext">
+                                    LSM Tree Storage Engine &mdash; Custom LSM Tree storage engine implementing MemTable,
+                                    SSTables, and Bloom filters, achieving 3,500+ writes/sec with 97% test coverage.
+                                    Explores the concepts behind systems like RocksDB and Cassandra. Includes a live
+                                    visualizer for the write path and compaction process.
+                                </p>
+                            </div>
+                            <div class="row-span-1 flex justify-around w-full">
+                                <a href="https://lsm-database-engine.onrender.com/visualizer" target="_blank" rel="noopener noreferrer" title="Live Visualizer">
+                                    <img src="assets/images/logo/linkredirect.gif" alt="live" class="w-10" />
+                                </a>
+                            </div>
+                        </div>
+                        <div class="order-1 flex justify-center items-center">
+                            <div class="box h-[70px] md:h-[90px] lg:h-[150px] w-fit md:w-2/3 mb-4 lg:mb-0">
+                                <div
+                                    class="content fonty text-[16px] lg:text-[26px] tracking-wider px-10 lg:px-5 mt-2 text-center">
+                                    LSM Tree Engine
+                                </div>
+                                <div class="corner top-left"></div>
+                                <div class="corner top-right"></div>
+                                <div class="corner bottom-left"></div>
+                                <div class="corner bottom-right"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="container mx-auto w-11/12 md:w-11/12 z-50">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-0">
+                        <div class="order-2 flex flex-col items-center justify-center gap-4 ">
+                            <div
+                                class="row-span-1 flex flex-col p-1 border-2 md:border-4 border-black w-full md:w-3/4 text-[10px] lg:text-[14px] text-white bg-black bg-opacity-50">
+                                <p class="desctext">
+                                    OpenInference CLI &mdash; Hardware-aware package manager for local AI models. Profiles
+                                    CPU, RAM, GPU, disk, and OS, then recommends models from a 150+ model catalog that will
+                                    realistically run on the machine. Guided setup wizard, unattended mode for CI/cloud VMs
+                                    with automatic fallback to smaller models, and Ollama as the inference backend.
+                                    TypeScript/Node.js, distributed via npm, ~11,100 downloads/month, MIT licensed.
+                                </p>
+                            </div>
+                            <div class="row-span-1 flex justify-around w-full">
+                                <a href="https://www.npmjs.com/package/@openinference/cli" target="_blank" rel="noopener noreferrer" title="npm package">
+                                    <img src="assets/images/logo/linkredirect.gif" alt="live" class="w-10" />
+                                </a>
+                            </div>
+                        </div>
+                        <div class="order-1 flex justify-center items-center">
+                            <div class="box h-[70px] md:h-[90px] lg:h-[150px] w-fit md:w-2/3 mb-4 lg:mb-0">
+                                <div
+                                    class="content fonty text-[16px] lg:text-[26px] tracking-wider px-10 lg:px-5 mt-2 text-center">
+                                    OpenInference CLI
+                                </div>
+                                <div class="corner top-left"></div>
+                                <div class="corner top-right"></div>
+                                <div class="corner bottom-left"></div>
+                                <div class="corner bottom-right"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="section relative">
+                <img id="castleImg" src="assets/projects/images/castle.png" alt="Castle"
+                    class="castle lg:w-64 lg:h-64 md:w-48 md:h-48 w-64 h-64" />
+            </div>
+        </div>
+    </div>
+    </div>
+    <div class="hills"></div>
+    <div class="floor"></div>
+    <div class="character">
+        <img id="characterImg" src="assets/projects/images/mario.png" alt="Character"
+            class="lg:w-32 lg:h-32 md:w-20 md:h-20 w-24 h-24" />
+    </div>
+    <div id="muteButton" class="mute-button muted"></div>
+    <audio id="backgroundSound" src="assets/audio/projects/mariobgm.mp3" preload="auto" autoplay loop volume="0.5"></audio>
+    <audio id="sectionAppearSound" src="assets/audio/projects/smb_coin.wav" preload="auto"></audio>
+    <audio id="characterDisappearSound" src="assets/audio/projects/smb_stage_clear.wav" preload="auto"></audio>
+
+
+    <div id="modal-bg" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div id="mobile-menu-modal" class="bg-white nes-container with-title is-centered">
+            <a href="/index.html" class="block px-4 py-2 text-black hover:underline hover:tracking-widest">Home</a>
+            <a href="/about.html" class="block px-4 py-2 text-black hover:underline hover:tracking-widest">About</a>
+            <a href="/opensource.html" class="block px-4 py-2 text-black hover:underline hover:tracking-widest">OpenSource</a>
+            <a href="/contact.html" class="block px-4 py-2 text-black hover:underline hover:tracking-widest">Contact</a>
+            <a href="/project.html" class="block w-full mt-4 bulbula px-4 py-2 text-white bg-red-500 shadow">Close</a>
+        </div>
+    </div>
+
+    <footer class="z-50 w-full flex items-start justify-start md:items-center md:justify-center absolute bottom-0 ">
+        <div class=" bg-gray-900 bg-opacity-50 w-fit ">
+            <p class="text-white max-[320px]:text-[8px] text-[10px] lg:text-[14px] mr-2">Copyright © 2026 --<a
+                    href="mailto:souravrajvi@gmail.com"
+                    class="text-white max-[320px]:text-[8px] text-[10px] lg:text-[14px] underline">souravrajvi@gmail.com</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="assets/js/utils/constants.js"></script>
+    <script src="assets/projects/project.js"></script>
+</body>
+
+</html>

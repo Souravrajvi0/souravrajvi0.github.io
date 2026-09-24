@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Engineering Roadmap</title>
+    <link rel="icon" type="image/png" href="../../assets/index/images/pixelboyhead.png">
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/study.css">
+    <meta name="description" content="Backend Engineering study guide — from Authentication (JWT, OAuth) to Databases, APIs, and System Architecture. Retro pixel art theme.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../assets/js/utils/config.js"></script>
+</head>
+
+<body>
+    <header class="w-full">
+        <nav class="navbar">
+            <div class="navbar-desktop items-center justify-between w-full">
+                <div class="flex items-center gap-8">
+                    <a class="nav-item" href="../../opensource.html">OpenSource</a>
+                    <a class="nav-item" href="../../project.html">Projects</a>
+                    <a class="nav-item" href="../index.html">Research</a>
+                </div>
+                <a href="../../index.html" class="flex items-center justify-center">
+                    <img src="../../assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <div class="flex items-center gap-8">
+                    <a class="nav-item" href="../../about.html">About</a>
+                    <a class="nav-item" href="../../contact.html">Contact</a>
+                    <a class="nav-item" href="../index.html">Study</a>
+                </div>
+            </div>
+            <!-- Hamburger menu -->
+            <div class="md:hidden flex items-center justify-between w-full">
+                <a href="../../index.html" class="flex items-center justify-start">
+                    <img src="../../assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <button id="menu-toggle" class="flex items-center justify-end">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden absolute top-0 right-0 bg-black w-full mt-14 z-50 text-right">
+                <a class="block py-2 px-4 text-white" href="../../index.html">Home</a>
+                <a class="block py-2 px-4 text-white" href="../../project.html">Projects</a>
+                <a class="block py-2 px-4 text-white" href="../index.html">Research</a>
+                <a class="block py-2 px-4 text-white" href="../../opensource.html">OpenSource</a>
+                <a class="block py-2 px-4 text-white" href="../../about.html">About</a>
+                <a class="block py-2 px-4 text-white" href="../../contact.html">Contact</a>
+                <a class="block py-2 px-4 text-white" href="../index.html">Study</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Topic Header -->
+    <section class="topic-header">
+        <div class="topic-header-content">
+            <div class="topic-icon-large" style="font-size: 4rem; filter: drop-shadow(6px 6px 0px #000);">⚙️</div>
+            <h1 class="topic-title">Backend Architecture</h1>
+            <p class="topic-tagline">From Fundamentals to Scalable Systems</p>
+            <div class="topic-meta">
+                <span class="topic-meta-item">Level: <span>Beginner → Advanced</span></span>
+                <span class="topic-meta-item">Duration: <span>8-12 Weeks</span></span>
+                <span class="topic-meta-item">Topics: <span>Auth, DBs, APIs, Scaling</span></span>
+                <span class="topic-meta-item">Skills: <span>JWT, OAuth 2.0, REST, Microservices</span></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Study Interface -->
+    <section class="study-dashboard max-w-7xl mx-auto flex flex-col md:flex-row gap-8 p-4 my-8">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-1/4">
+            <div class="sticky top-24 bg-black border-2 border-white boxxy p-4">
+                <h3 class="font-bold text-yellow-400 mb-4 border-b border-gray-700 pb-2 title" style="font-size: 1.2rem;">Roadmap</h3>
+                <ul class="space-y-4 font-['Press_Start_2P'] text-[10px] leading-loose">
+                    <li>
+                        <a href="#phase0" class="hover:text-green-400 text-white block">Phase 0: Authentication</a>
+                        <ul class="pl-4 mt-2 space-y-2 text-gray-400">
+                            <li><a href="#auth-session" class="hover:text-white block">- Session vs Token</a></li>
+                            <li><a href="#auth-jwt" class="hover:text-white block">- JWT Deep Dive</a></li>
+                            <li><a href="#auth-oauth" class="hover:text-white block">- OAuth & OAuth 2.0</a></li>
+                            <li><a href="#auth-mfa" class="hover:text-white block">- MFA Security</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#phase1" class="hover:text-green-400 text-white block">Phase 1: Databases</a></li>
+                    <li><a href="#phase2" class="hover:text-green-400 text-white block">Phase 2: API Design</a></li>
+                    <li><a href="#phase3" class="hover:text-green-400 text-white block">Phase 3: Server Architecture</a></li>
+                    <li><a href="#phase4" class="hover:text-green-400 text-white block">Phase 4: Caching & Queues</a></li>
+                    <li><a href="#phase5" class="hover:text-green-400 text-white block">Phase 5: DevOps & CI/CD</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="w-full md:w-3/4">
+            <div class="bg-black border-2 border-white boxxy p-6 md:p-10 space-y-12">
+
+                <!-- Phase 0: Authentication -->
+                <div id="phase0" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 0: Authentication & Security</h2>
+                    <div class="prose prose-invert max-w-none text-gray-300">
+                        <p class="text-gray-300 font-mono text-xs md:text-sm leading-relaxed my-3">
+                            <strong class="text-white font-semibold">Authentication</strong> is the process of verifying who someone is. In backend engineering, it forms the foundation of system security, user sessions, and API authorization.
+                        </p>
+
+                        <hr class="border-gray-800 border-dashed my-8">
+
+                        <h3 id="auth-overview" class="text-lg text-green-400 font-bold mt-8 mb-3 font-['Joystick'] scroll-mt-24">1. What is Authentication?</h3>
+                        <p class="text-gray-300 font-mono text-xs md:text-sm leading-relaxed my-3">
+                            Authentication verifies identity before granting access to resources. When a user logs in, the backend checks provided credentials against stored hashed values (such as bcrypt or Argon2 passwords).
+                        </p>
+
+                        <hr class="border-gray-800 border-dashed my-8">
+
+                        <h3 id="auth-session" class="text-lg text-green-400 font-bold mt-8 mb-3 font-['Joystick'] scroll-mt-24">2. Session-Based Authentication</h3>
+                        <p class="text-gray-300 font-mono text-xs md:text-sm leading-relaxed my-3">
+                            Session-based auth uses server-side storage (e.g. Redis, database) to track logged-in users. When a user authenticates, the server stores a session object and returns a session ID cookie to the browser.
+                        </p>
+                        
+                        <div class="my-4 bg-gray-950 border border-gray-800 rounded p-4 overflow-x-auto shadow-inner">
+                            <pre class="font-mono text-xs md:text-sm text-green-400 leading-relaxed"><code>User Login → Server Validates → Creates Session (Redis/DB) → Sets Cookie (Session ID)
+Subsequent Request → Cookie attached → Server looks up Session ID → User Authenticated</code></pre>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-4 font-mono text-xs">
+                            <div class="bg-gray-900 border border-gray-800 p-4 rounded">
+                                <h4 class="text-green-400 font-bold mb-2 font-['Joystick']">PROS</h4>
+                                <ul class="list-disc list-inside space-y-1 text-gray-300">
+                                    <li>Easy to invalidate single sessions</li>
+                                    <li>Stateful control over active logins</li>
+                                    <li>Payload hidden from client side</li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-900 border border-gray-800 p-4 rounded">
+                                <h4 class="text-red-400 font-bold mb-2 font-['Joystick']">CONS</h4>
+                                <ul class="list-disc list-inside space-y-1 text-gray-300">
+                                    <li>Server storage overhead</li>
+                                    <li>Requires shared cache for multi-server scaling</li>
+                                    <li>CORS cookie limitations for cross-domain APIs</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <hr class="border-gray-800 border-dashed my-8">
+
+                        <h3 id="auth-token" class="text-lg text-green-400 font-bold mt-8 mb-3 font-['Joystick'] scroll-mt-24">3. Token-Based Authentication</h3>
+                        <p class="text-gray-300 font-mono text-xs md:text-sm leading-relaxed my-3">
+                            Token-based auth relies on a signed token sent in HTTP headers (e.g. <code class="bg-gray-800 text-yellow-300 px-1.5 py-0.5 rounded font-mono text-xs">Authorization: Bearer &lt;token&gt;</code>). The server validates the cryptographic signature without querying session databases.
+                        </p>
+
+                        <div class="my-4 bg-gray-950 border border-gray-800 rounded p-4 overflow-x-auto shadow-inner">
+                            <pre class="font-mono text-xs md:text-sm text-green-400 leading-relaxed"><code>Client Login → Server Validates → Signs Token (Secret/PrivateKey) → Returns Token
+Client Request → Sends Bearer Token in Header → Server Verifies Signature → Grants Access</code></pre>
+                        </div>
+
+                        <hr class="border-gray-800 border-dashed my-8">
+
+                        <h3 id="auth-jwt" class="text-lg text-green-400 font-bold mt-8 mb-3 font-['Joystick'] scroll-mt-24">4. JSON Web Tokens (JWT)</h3>
+                        <p class="text-gray-300 font-mono text-xs md:text-sm leading-relaxed my-3">
+                            JWT (RFC 7519) is a standard format for securely transmitting claims as a Base64URL-encoded JSON object. A JWT consists of three parts separated by dots:
+                        </p>
+
+                        <div class="my-4 bg-gray-950 border border-gray-800 rounded p-4 overflow-x-auto shadow-inner">
+                            <pre class="font-mono text-xs md:text-sm text-green-400 leading-relaxed"><code>Header.Payload.Signature
+
+Header:    {"alg": "HS256", "typ": "JWT"}
+Payload:   {"sub": "1234567890", "name": "Alice", "role": "admin", "exp": 1700000000}
+Signature: HMACSHA256(base64UrlEncode(Header) + "." + base64UrlEncode(Payload), secret)</code></pre>
+                        </div>
+
+                        <hr class="border-gray-800 border-dashed my-8">
+
+                        <h3 id="auth-oauth" class="text-lg text-green-400 font-bold mt-8 mb-3 font-['Joystick'] scroll-mt-24">5. OAuth & OAuth 2.0 Framework</h3>
+                        <p class="text-gray-300 font-mono text-xs md:text-sm leading-relaxed my-3">
+                            OAuth 2.0 is an authorization framework enabling third-party applications to access user resources securely without revealing passwords (e.g. "Login with Google/GitHub").
+                        </p>
+
+                        <div class="my-4 bg-gray-950 border border-gray-800 rounded p-4 overflow-x-auto shadow-inner">
+                            <pre class="font-mono text-xs md:text-sm text-green-400 leading-relaxed"><code>1. User clicks "Login with Provider"
+2. Redirect to Authorization Server with Client ID & Scope
+3. User approves permissions
+4. Auth Server redirects back with Authorization Code
+5. Backend exchanges Code for Access Token & Refresh Token
+6. Access API with Access Token</code></pre>
+                        </div>
+
+                        <hr class="border-gray-800 border-dashed my-8">
+
+                        <h3 id="auth-mfa" class="text-lg text-green-400 font-bold mt-8 mb-3 font-['Joystick'] scroll-mt-24">6. Multi-Factor Authentication (MFA)</h3>
+                        <p class="text-gray-300 font-mono text-xs md:text-sm leading-relaxed my-3">
+                            MFA requires two or more distinct factors before issuing tokens:
+                        </p>
+                        <ul class="list-disc list-inside space-y-2 my-4 text-gray-300 font-mono text-xs md:text-sm leading-relaxed pl-2">
+                            <li><strong class="text-white">Knowledge:</strong> Password, PIN, or security question</li>
+                            <li><strong class="text-white">Possession:</strong> TOTP App (Google Authenticator), SMS OTP, Hardware YubiKey</li>
+                            <li><strong class="text-white">Inherence:</strong> Fingerprint, Face ID, or biometrics</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+
+                <!-- Phase 1: Databases -->
+                <div id="phase1" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 1: Database Architecture</h2>
+                    <div class="prose prose-invert max-w-none text-gray-300">
+                        <div class="p-6 border border-gray-700 bg-gray-900 mt-6 relative">
+                            <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                            <h4 class="text-white mb-2 text-sm font-['Joystick']">Relational vs NoSQL & Query Optimization</h4>
+                            <p class="text-gray-500 font-mono text-xs">Topics include PostgreSQL indexing, transactions (ACID), Redis caching layer, and schema migrations.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+
+                <!-- Phase 2: API Design -->
+                <div id="phase2" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 2: API Design & Protocols</h2>
+                    <div class="prose prose-invert max-w-none text-gray-300">
+                        <div class="p-6 border border-gray-700 bg-gray-900 mt-6 relative">
+                            <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                            <h4 class="text-white mb-2 text-sm font-['Joystick']">REST, gRPC, and WebSockets</h4>
+                            <p class="text-gray-500 font-mono text-xs">Designing idempotent RESTful APIs, gRPC protocol buffers, rate limiting, and real-time WebSocket communication.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+
+                <!-- Phase 3: Server Architecture -->
+                <div id="phase3" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 3: Server Architecture</h2>
+                    <div class="prose prose-invert max-w-none text-gray-300">
+                        <div class="p-6 border border-gray-700 bg-gray-900 mt-6 relative">
+                            <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                            <h4 class="text-white mb-2 text-sm font-['Joystick']">Monoliths, Microservices & Event-Driven Systems</h4>
+                            <p class="text-gray-500 font-mono text-xs">Understanding concurrency, thread pools, event loops, load balancing, and service orchestration.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+
+                <!-- Phase 4: Caching & Message Queues -->
+                <div id="phase4" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 4: Caching & Message Queues</h2>
+                    <div class="prose prose-invert max-w-none text-gray-300">
+                        <div class="p-6 border border-gray-700 bg-gray-900 mt-6 relative">
+                            <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                            <h4 class="text-white mb-2 text-sm font-['Joystick']">Redis & Asynchronous Queue Processing</h4>
+                            <p class="text-gray-500 font-mono text-xs">Cache invalidation strategies, pub/sub messaging, RabbitMQ, Kafka, and background task workers.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+
+                <!-- Phase 5: DevOps & CI/CD -->
+                <div id="phase5" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 5: DevOps & Deployment</h2>
+                    <div class="prose prose-invert max-w-none text-gray-300">
+                        <div class="p-6 border border-gray-700 bg-gray-900 mt-6 relative">
+                            <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                            <h4 class="text-white mb-2 text-sm font-['Joystick']">Docker, CI/CD, Monitoring & Logs</h4>
+                            <p class="text-gray-500 font-mono text-xs">Containerizing services, automated integration testing, GitHub Actions, Prometheus monitoring, and logging.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </section>
+
+    <!-- Footer CTA -->
+    <footer class="study-footer">
+        <p class="study-footer-text">Ready to master backend engineering?</p>
+        <a href="#phase0" class="study-footer-link">BEGIN WITH AUTHENTICATION</a>
+        <p style="margin-top: 2rem; font-family: 'Press Start 2P', cursive; font-size: 0.6rem; color: #666;">
+            Built with passion for aspiring developers
+        </p>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu on link click
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+    </script>
+</body>
+
+</html>

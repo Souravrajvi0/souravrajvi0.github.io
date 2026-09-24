@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Engineer Roadmap</title>
+    <link rel="icon" type="image/png" href="../../assets/index/images/pixelboyhead.png">
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../assets/css/global.css">
+    <link rel="stylesheet" href="../../assets/css/study.css">
+    <meta name="description" content="AI Engineer learning roadmap — from fundamentals to advanced ML/AI systems. Retro pixel art themed study guide.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="../../assets/js/utils/config.js"></script>
+</head>
+
+<body>
+    <header class="w-full">
+        <nav class="navbar">
+            <div class="navbar-desktop items-center justify-between w-full">
+                <div class="flex items-center space-x-4">
+                    <a class="nav-item" href="../../blog.html">Blog</a>
+                    <a class="nav-item" href="../../project.html">Projects</a>
+                </div>
+                <a href="../../index.html" class="flex items-center justify-center">
+                    <img src="../../assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <div class="flex items-center space-x-4">
+                    <a class="nav-item" href="../../about.html">About</a>
+                    <a class="nav-item" href="../../contact.html">Contact</a>
+                    <a class="nav-item" href="../index.html">Study</a>
+                </div>
+            </div>
+            <!-- Hamburger menu -->
+            <div class="md:hidden flex items-center justify-between w-full">
+                <a href="../../index.html" class="flex items-center justify-start">
+                    <img src="../../assets/index/images/logo.png" alt="logo" class="h-8 img">
+                </a>
+                <button id="menu-toggle" class="flex items-center justify-end">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <div id="mobile-menu" class="hidden absolute top-0 right-0 bg-black w-full mt-14 z-50 text-right">
+                <a class="block py-2 px-4 text-white" href="../../index.html">Home</a>
+                <a class="block py-2 px-4 text-white" href="../../project.html">Projects</a>
+                <a class="block py-2 px-4 text-white" href="../../blog.html">Blog</a>
+                <a class="block py-2 px-4 text-white" href="../../about.html">About</a>
+                <a class="block py-2 px-4 text-white" href="../../contact.html">Contact</a>
+                <a class="block py-2 px-4 text-white" href="../index.html">Study</a>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Topic Header -->
+    <section class="topic-header">
+        <div class="topic-header-content">
+            <div class="topic-icon-large" style="font-size: 4rem; filter: drop-shadow(6px 6px 0px #000);">🤖</div>
+            <h1 class="topic-title">GenAI FDE Roadmap</h1>
+            <p class="topic-tagline">Backend-First Accelerated</p>
+            <div class="topic-meta">
+                <span class="topic-meta-item">Level: <span>Beginner → Advanced</span></span>
+                <span class="topic-meta-item">Duration: <span>12-16 Weeks</span></span>
+                <span class="topic-meta-item">Projects: <span>5+ Portfolio Projects</span></span>
+                <span class="topic-meta-item">Skills: <span>ML, DL, LLMs, MLOps</span></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Study Interface -->
+    <section class="study-dashboard max-w-7xl mx-auto flex flex-col md:flex-row gap-8 p-4 my-8">
+        <!-- Sidebar -->
+        <aside class="w-full md:w-1/4">
+            <div class="sticky top-24 bg-black border-2 border-white boxxy p-4">
+                <h3 class="font-bold text-yellow-400 mb-4 border-b border-gray-700 pb-2 title" style="font-size: 1.2rem;">Roadmap</h3>
+                <ul class="space-y-4 font-['Press_Start_2P'] text-[10px] leading-loose">
+                    <li><a href="#phase0" class="hover:text-green-400 text-white block">Phase 0: Foundations</a></li>
+                    <li>
+                        <a href="#phase1" class="hover:text-green-400 text-white block">Phase 1: RAG</a>
+                        <ul class="pl-4 mt-2 space-y-2 text-gray-400">
+                            <li><a href="#phase1-week1" class="hover:text-white block">- Week 1: Embeddings</a></li>
+                            <li><a href="#phase1-week2" class="hover:text-white block">- Week 2: Retrieval</a></li>
+                            <li><a href="#phase1-week3" class="hover:text-white block">- Week 3: Generation</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#phase2" class="hover:text-green-400 text-white block">Phase 2: Agents</a>
+                        <ul class="pl-4 mt-2 space-y-2 text-gray-400">
+                            <li><a href="#phase2-week1" class="hover:text-white block">- Week 1: Raw Agents</a></li>
+                            <li><a href="#phase2-week2" class="hover:text-white block">- Week 2: Tool Use</a></li>
+                            <li><a href="#phase2-week3" class="hover:text-white block">- Week 3: Orchestration</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#phase3" class="hover:text-green-400 text-white block">Phase 3: Production</a>
+                        <ul class="pl-4 mt-2 space-y-2 text-gray-400">
+                            <li><a href="#phase3-week1" class="hover:text-white block">- Week 1: Optimization</a></li>
+                            <li><a href="#phase3-week2" class="hover:text-white block">- Week 2: Guardrails</a></li>
+                            <li><a href="#phase3-week3" class="hover:text-white block">- Week 3: Evals</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#phase4" class="hover:text-green-400 text-white block">Phase 4: Execution</a></li>
+                    <li><a href="#phase5" class="hover:text-green-400 text-white block">Phase 5: Portfolio</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="w-full md:w-3/4">
+            <div class="bg-black border-2 border-white boxxy p-6 md:p-10 space-y-12">
+                
+                <!-- Phase 0 -->
+                <div id="phase0" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 0: Production AI Foundations</h2>
+                    <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+# Phase 0 — Foundations for GenAI / AI Engineering
+
+The purpose of Phase 0 isn't to teach you everything from scratch. You already have solid backend experience, so this phase is about **verifying and filling the gaps that become important once you start building LLM systems**.
+
+---
+
+# 1. Python for AI Engineering
+
+You already know Python, but GenAI systems use some Python patterns more heavily than traditional Django CRUD applications.
+
+The important areas are:
+
+```text
+Python
+├── Async / Await
+├── Type Hints
+├── Dataclasses / Pydantic
+├── Iterators / Generators
+├── Context Managers
+├── Packaging
+├── Dependency Management
+├── Environment Management
+└── Concurrency
+```
+
+---
+
+## 1.1 Async / Await
+
+You should be very comfortable with:
+
+```python
+async def fetch_data():
+    result = await api_call()
+    return result
+```
+
+The important distinction:
+
+```text
+async/await ≠ parallel execution
+```
+
+Async is primarily about **not blocking while waiting for I/O**.
+
+For example:
+
+```python
+response = await client.get(...)
+```
+
+While waiting for the network:
+
+```text
+Your coroutine
+     │
+     │ waiting
+     ▼
+event loop
+     │
+     ├── execute another request
+     ├── process another task
+     └── handle another connection
+```
+
+This becomes extremely important for LLM applications because a single request can involve:
+
+```text
+User
+ ↓
+LLM API
+ ↓
+Tool call
+ ↓
+Database
+ ↓
+Another API
+ ↓
+LLM API
+ ↓
+Response
+```
+
+Most of that time is **I/O waiting**.
+
+### Important concepts
+
+Know the difference between:
+
+```python
+async def
+await
+asyncio.run()
+asyncio.gather()
+asyncio.create_task()
+```
+
+Especially:
+
+```python
+results = await asyncio.gather(
+    call_llm_1(),
+    call_llm_2(),
+    call_llm_3(),
+)
+```
+
+This can be useful when multiple independent LLM/API calls need to happen concurrently.
+
+For example:
+
+```text
+                    ┌── LLM → summary
+                    │
+User → Backend ─────┼── LLM → classification
+                    │
+                    └── LLM → extraction
+```
+
+Instead of:
+
+```text
+summary
+  ↓
+classification
+  ↓
+extraction
+```
+
+you can potentially run them concurrently.
+
+---
+
+# 2. Concurrency vs Parallelism
+
+This distinction is worth being very clear about.
+
+### Concurrency
+
+Multiple tasks are **in progress** during overlapping periods.
+
+```text
+Task A ────────┐
+               │
+Task B ────────┤
+               │
+Task C ────────┘
+```
+
+### Parallelism
+
+Multiple tasks are literally executing at the same time on different CPU cores/workers.
+
+```text
+CPU 1 → Task A
+CPU 2 → Task B
+CPU 3 → Task C
+```
+
+For GenAI applications:
+
+| Work                  | Typical approach              |
+| --------------------- | ----------------------------- |
+| API calls             | Async                         |
+| DB/network I/O        | Async                         |
+| Multiple LLM requests | Async/concurrent              |
+| CPU-heavy processing  | Multiprocessing/workers       |
+| GPU inference         | Specialized inference systems |
+
+Don't automatically reach for threads/processes when the bottleneck is network latency.
+
+---
+
+# 3. Type Hints
+
+AI codebases can become messy very quickly because you're passing around:
+
+```text
+prompts
+messages
+tool calls
+tool results
+model responses
+schemas
+documents
+chunks
+metadata
+embeddings
+```
+
+Type hints make this manageable.
+
+Instead of:
+
+```python
+def process(data):
+    ...
+```
+
+prefer:
+
+```python
+def process(data: list[str]) -> dict[str, int]:
+    ...
+```
+
+And understand:
+
+```python
+Optional
+Union
+Literal
+TypedDict
+Protocol
+Generic
+TypeVar
+```
+
+Modern Python:
+
+```python
+def get_model(
+    provider: str,
+    model: str,
+) -> LLMClient | None:
+    ...
+```
+
+---
+
+# 4. Pydantic
+
+This becomes **very important** for AI engineering.
+
+You should understand Pydantic extremely well.
+
+Example:
+
+```python
+from pydantic import BaseModel
+
+
+class User(BaseModel):
+    name: str
+    age: int
+    email: str
+```
+
+Then:
+
+```python
+user = User(
+    name="Tanish",
+    age=25,
+    email="test@example.com",
+)
+```
+
+Pydantic validates and parses external data.
+
+This matters because LLM output is **untrusted model-generated data**.
+
+For example, you might ask:
+
+```text
+Extract customer information.
+Return:
+- name
+- email
+- phone
+```
+
+Instead of trusting the response:
+
+```python
+response["email"]
+```
+
+you want:
+
+```python
+class Customer(BaseModel):
+    name: str
+    email: str
+    phone: str
+```
+
+Then:
+
+```python
+customer = Customer.model_validate(response)
+```
+
+Think of Pydantic as the boundary between:
+
+```text
+Untrusted external data
+        ↓
+Validation
+        ↓
+Your application
+```
+
+This pattern will appear repeatedly throughout the roadmap.
+
+---
+
+# 5. Generators
+
+You should understand:
+
+```python
+yield
+```
+
+and:
+
+```python
+for chunk in generate():
+    print(chunk)
+```
+
+This becomes useful for **streaming LLM responses**.
+
+Instead of:
+
+```text
+User
+ ↓
+LLM
+ ↓
+wait 8 seconds
+ ↓
+Entire response
+```
+
+you can have:
+
+```text
+User
+ ↓
+LLM
+ ↓
+"Here"
+ ↓
+"is"
+ ↓
+"the"
+ ↓
+"answer"
+```
+
+Conceptually:
+
+```python
+def generate():
+    yield "Hello"
+    yield " "
+    yield "world"
+```
+
+Later you'll encounter:
+
+```text
+HTTP streaming
+SSE
+WebSockets
+async generators
+LLM token streaming
+```
+
+So understand both:
+
+```python
+def generator():
+    yield ...
+```
+
+and:
+
+```python
+async def generator():
+    yield ...
+```
+
+---
+
+# 6. Packaging
+
+You should understand how a production Python project is structured.
+
+A reasonable modern structure:
+
+```text
+my-ai-app/
+├── pyproject.toml
+├── uv.lock
+├── README.md
+├── .env
+├── .gitignore
+│
+├── src/
+│   └── my_ai_app/
+│       ├── __init__.py
+│       ├── api/
+│       ├── services/
+│       ├── models/
+│       ├── llm/
+│       ├── tools/
+│       └── config/
+│
+└── tests/
+```
+
+Understand:
+
+```text
+package
+module
+dependency
+virtual environment
+editable install
+pyproject.toml
+lock file
+```
+
+---
+
+# 7. uv / Poetry
+
+You don't need to become obsessed with package managers.
+
+You need to understand the problem they solve.
+
+Without proper dependency management:
+
+```text
+Machine A
+Python 3.11
+package X 1.2
+package Y 4.1
+
+Machine B
+Python 3.12
+package X 1.4
+package Y 4.3
+```
+
+Eventually:
+
+> "Works on my machine."
+
+A lock file gives you reproducibility.
+
+For example:
+
+```text
+pyproject.toml
+       ↓
+dependencies
+       ↓
+uv.lock
+       ↓
+exact versions
+```
+
+For your GenAI work, I'd recommend becoming comfortable with **uv**.
+
+You don't need to learn both uv and Poetry deeply.
+
+---
+
+# 8. Environment Variables & Configuration
+
+LLM applications commonly need:
+
+```text
+OPENAI_API_KEY
+ANTHROPIC_API_KEY
+DATABASE_URL
+REDIS_URL
+MODEL_NAME
+TEMPERATURE
+```
+
+Never:
+
+```python
+OPENAI_API_KEY = "sk-..."
+```
+
+Instead:
+
+```python
+import os
+
+api_key = os.environ["OPENAI_API_KEY"]
+```
+
+Or preferably use a configuration layer:
+
+```python
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    openai_api_key: str
+    model_name: str = "..."
+```
+
+This becomes useful later when you have:
+
+```text
+Development
+Staging
+Production
+Local Ollama
+Cloud LLM
+```
+
+and want to switch providers without changing application code.
+
+---
+
+# 9. REST API Design
+
+You already have this.
+
+For GenAI, however, APIs often look slightly different.
+
+Traditional API:
+
+```http
+POST /users
+POST /orders
+GET /products
+```
+
+AI API:
+
+```http
+POST /chat
+POST /generate
+POST /embeddings
+POST /documents
+POST /agents/run
+POST /tools/execute
+```
+
+You should understand:
+
+* request/response schemas
+* authentication
+* rate limiting
+* pagination
+* idempotency
+* retries
+* timeouts
+* error handling
+
+Especially:
+
+### Timeouts
+
+Never assume an LLM request will return instantly.
+
+```python
+await client.chat.completions.create(
+    ...,
+    timeout=30,
+)
+```
+
+Your production architecture needs to account for:
+
+```text
+LLM slow
+   ↓
+request timeout
+   ↓
+retry?
+   ↓
+fallback?
+   ↓
+return graceful error?
+```
+
+We'll go much deeper into this in Phase 5.
+
+---
+
+# 10. gRPC
+
+You don't need deep gRPC knowledge for Phase 0.
+
+Understand the difference:
+
+```text
+REST
+JSON
+HTTP
+human-friendly
+```
+
+vs
+
+```text
+gRPC
+Protocol Buffers
+HTTP/2
+strongly typed
+efficient service-to-service communication
+```
+
+For example:
+
+```text
+API Gateway
+     ↓ gRPC
+AI Orchestrator
+     ↓ gRPC
+Inference Service
+```
+
+You should know:
+
+* protobuf
+* RPC
+* unary calls
+* streaming RPC
+* service definitions
+
+But don't spend significant time here right now.
+
+---
+
+# 11. Docker
+
+You already have this foundation.
+
+For GenAI, Docker becomes useful for:
+
+```text
+FastAPI application
+      ↓
+Docker
+      ↓
+PostgreSQL
+      ↓
+Redis
+      ↓
+Vector DB
+```
+
+A typical local AI stack might eventually look like:
+
+```text
+┌─────────────────────────┐
+│       FastAPI           │
+│      AI Backend         │
+└───────────┬─────────────┘
+            │
+    ┌───────┼─────────┐
+    ▼       ▼         ▼
+ Postgres  Redis    Ollama
+    │                 │
+ pgvector           LLM
+```
+
+Know:
+
+```text
+Dockerfile
+image
+container
+volume
+network
+environment variables
+docker compose
+health checks
+```
+
+---
+
+# 12. Kubernetes
+
+For Phase 0:
+
+**skim it.**
+
+You don't need to learn Kubernetes deeply before starting LLMs.
+
+Understand:
+
+```text
+Pod
+Deployment
+Service
+ConfigMap
+Secret
+Ingress
+Horizontal Pod Autoscaler
+```
+
+Conceptually:
+
+```text
+Internet
+   ↓
+Ingress
+   ↓
+Service
+   ↓
+Pods
+ ┌────┬────┬────┐
+ │ AI │ AI │ AI │
+ └────┴────┴────┘
+```
+
+Later, Phase 5 will revisit this when we discuss inference scaling.
+
+---
+
+# 13. Linear Algebra
+
+You don't need university-level mathematics.
+
+You need enough math to understand what's happening inside models.
+
+The most important concepts:
+
+```text
+Scalar
+Vector
+Matrix
+Tensor
+Dot product
+Matrix multiplication
+Norm
+Cosine similarity
+```
+
+---
+
+## 13.1 Vector
+
+A vector:
+
+```text
+x = [2, 4, 6]
+```
+
+can represent a point in a mathematical space.
+
+An embedding might look conceptually like:
+
+```text
+[0.12, -0.42, 0.81, 0.03, ...]
+```
+
+Real embeddings can have hundreds or thousands of dimensions.
+
+---
+
+# 14. Dot Product
+
+For:
+
+```text
+A = [a₁, a₂, a₃]
+
+B = [b₁, b₂, b₃]
+```
+
+the dot product is:
+
+```text
+A · B = a₁b₁ + a₂b₂ + a₃b₃
+```
+
+Example:
+
+```text
+A = [1, 2, 3]
+B = [4, 5, 6]
+
+A · B
+= 1×4 + 2×5 + 3×6
+= 32
+```
+
+Why do you care?
+
+Because dot products appear everywhere:
+
+```text
+Embeddings
+Attention
+Similarity search
+Neural networks
+```
+
+---
+
+# 15. Matrix Multiplication
+
+You should understand:
+
+```text
+A × B
+```
+
+and dimensions.
+
+For:
+
+```text
+A = (3 × 4)
+B = (4 × 2)
+```
+
+the result is:
+
+```text
+A × B = (3 × 2)
+```
+
+The middle dimensions must match.
+
+This is fundamental to neural networks.
+
+For example:
+
+```text
+X @ Wq
+```
+
+creates Query representations.
+
+---
+
+# 16. Norm
+
+For a vector:
+
+```text
+v = [3, 4]
+```
+
+its L2 norm is:
+
+```text
+√(3² + 4²)
+= 5
+```
+
+Conceptually:
+
+> How large is this vector?
+
+This becomes important when normalizing embeddings.
+
+---
+
+# 17. Cosine Similarity
+
+Extremely important for RAG.
+
+Cosine similarity:
+
+```text
+cos(θ) = (A · B) / (||A|| ||B||)
+```
+
+It measures the angle between two vectors.
+
+Conceptually:
+
+```text
+A ─────────→
+             ↘
+              ↘ B
+```
+
+If they point in similar directions:
+
+```text
+similarity ≈ 1
+```
+
+If they're perpendicular:
+
+```text
+similarity ≈ 0
+```
+
+If opposite:
+
+```text
+similarity ≈ -1
+```
+
+Example:
+
+```text
+"The dog is running"
+
+"The puppy is running"
+```
+
+should ideally have embeddings pointing in relatively similar directions.
+
+This is the mathematical foundation behind a lot of semantic search.
+
+---
+
+# 18. Probability
+
+You need basic probability concepts:
+
+```text
+Probability
+Conditional probability
+Probability distribution
+Expected value
+```
+
+Most importantly:
+
+```text
+P(next token | previous tokens)
+```
+
+An LLM is fundamentally learning a distribution over possible next tokens.
+
+For example:
+
+```text
+"The capital of France is"
+
+Paris      0.91
+London     0.02
+Berlin     0.01
+Madrid     0.01
+...
+```
+
+The model produces **logits**, which are transformed into probabilities.
+
+---
+
+# 19. Softmax
+
+Softmax converts logits into probabilities.
+
+Given:
+
+```text
+logits = [2.0, 1.0, 0.1]
+```
+
+softmax produces values that:
+
+```text
+sum = 1
+```
+
+Conceptually:
+
+```text
+logits
+   ↓
+softmax
+   ↓
+probability distribution
+```
+
+You'll see softmax constantly in transformer architectures.
+
+You don't need to memorize the formula immediately, but know what it does:
+
+> **It turns a vector of arbitrary scores into a probability distribution.**
+
+---
+
+# 20. Cross-Entropy
+
+This becomes important when you understand **how LLMs learn**.
+
+Suppose the correct next token is:
+
+```text
+Paris
+```
+
+The model predicts:
+
+```text
+Paris → 0.90
+London → 0.05
+Berlin → 0.03
+...
+```
+
+That's good.
+
+If it predicts:
+
+```text
+Paris → 0.01
+London → 0.70
+Berlin → 0.20
+```
+
+that's bad.
+
+Cross-entropy gives us a way to quantify how bad the prediction is.
+
+Training essentially tries to:
+
+```text
+minimize prediction error
+```
+
+through gradient-based optimization.
+
+You don't need to derive backpropagation yet.
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+
+                <!-- Phase 1 -->
+                <div id="phase1" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-6 title">Phase 1: RAG as Your Superpower</h2>
+                    
+                    <div id="phase1-week1" class="mt-8 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 1: Embeddings + Chunking</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 1 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="phase1-week2" class="mt-12 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 2: Retrieval + Reranking</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 2 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="phase1-week3" class="mt-12 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 3: Generation + Evaluation</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 3 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+
+                <!-- Phase 2 -->
+                <div id="phase2" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-6 title">Phase 2: Agents as Stateful Services</h2>
+                    
+                    <div id="phase2-week1" class="mt-8 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 1: Raw Agent Loops</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 1 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="phase2-week2" class="mt-12 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 2: Tool Use Patterns</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 2 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="phase2-week3" class="mt-12 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 3: Orchestration & Observability</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 3 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+                
+                <!-- Phase 3 -->
+                <div id="phase3" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-6 title">Phase 3: Production LLM Systems</h2>
+                    
+                    <div id="phase3-week1" class="mt-8 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 1: Inference Optimization</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 1 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="phase3-week2" class="mt-12 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 2: Guardrails & Safety</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 2 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="phase3-week3" class="mt-12 scroll-mt-24">
+                        <h3 class="text-lg text-white mb-4 font-bold border-l-4 border-yellow-400 pl-3">Week 3: Evals as CI/CD</h3>
+                        <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                            <div class="p-6 border border-gray-700 bg-gray-900 relative">
+                                <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                                <p class="text-gray-500">Add your Week 3 material here...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+                
+                <!-- Phase 4 -->
+                <div id="phase4" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 4: FDE-Specific Execution</h2>
+                    <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                        <div class="p-6 border border-gray-700 bg-gray-900 mt-6 relative">
+                            <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                            <h4 class="text-white mb-2 text-sm">Add your material here</h4>
+                            <p class="text-gray-500">Add your material for Phase 4 here...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-gray-700 border-dashed">
+
+                <!-- Phase 5 -->
+                <div id="phase5" class="scroll-mt-24">
+                    <h2 class="text-2xl text-yellow-400 font-bold mb-4 title">Phase 5: Portfolio & Positioning</h2>
+                    <div class="prose prose-invert max-w-none font-['Press_Start_2P'] text-[10px] leading-loose text-gray-300">
+                        <div class="p-6 border border-gray-700 bg-gray-900 mt-6 relative">
+                            <span class="absolute -top-3 left-4 bg-green-500 text-black px-2 py-1 text-[8px] font-bold">MATERIAL</span>
+                            <h4 class="text-white mb-2 text-sm">Add your material here</h4>
+                            <p class="text-gray-500">Add your material for Phase 5 here...</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </section>
+
+    <!-- Footer CTA -->
+    <footer class="study-footer">
+        <p class="study-footer-text">Ready to start your GenAI FDE journey?</p>
+        <a href="#roadmap" class="study-footer-link">BEGIN WITH PHASE 0</a>
+        <p style="margin-top: 2rem; font-family: 'Press Start 2P', cursive; font-size: 0.6rem; color: #666;">
+            Built with passion for aspiring GenAI FDEs
+        </p>
+    </footer>
+
+    <script>
+        // Tab switching functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.resources-tab');
+            const contents = document.querySelectorAll('.resources-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update active content
+                    contents.forEach(c => {
+                        c.classList.remove('active');
+                        if (c.getAttribute('data-content') === tabName) {
+                            c.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            // Progress circle animation (will be updated as user progresses)
+            const progressCircle = document.querySelector('.progress-circle-fill');
+            const progressText = document.querySelector('.progress-circle-text');
+            
+            // Mobile menu toggle
+            const menuToggle = document.getElementById('menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Close mobile menu on link click
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
