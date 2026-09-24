@@ -19,7 +19,8 @@
         }, { once: true });
     }
 
-    var muted = localStorage.getItem(MUTED_KEY) === 'true';
+    var wantsSound = localStorage.getItem(MUTED_KEY) !== 'true';
+    var unlocked = false;
 
     var btn = document.createElement('button');
     btn.id = 'bgm-toggle';
@@ -42,39 +43,36 @@
     document.body.appendChild(btn);
 
     function render() {
-        btn.textContent = muted ? '🔇' : '🔊';
+        btn.textContent = wantsSound ? '🔊' : '🔇';
     }
     render();
 
-    function play() {
-        audio.play().catch(function () {});
-    }
+    // Muted autoplay is always allowed by browsers, so start playback
+    // immediately (silently). The moment the user interacts, unmute
+    // in-place instead of waiting on a fresh play() call.
+    audio.muted = true;
+    audio.play().catch(function () {});
 
-    function setMuted(next) {
-        muted = next;
-        localStorage.setItem(MUTED_KEY, muted ? 'true' : 'false');
-        render();
-        if (muted) {
-            audio.pause();
-        } else {
-            play();
+    function unlock() {
+        if (unlocked) return;
+        unlocked = true;
+        audio.play().catch(function () {});
+        if (wantsSound) {
+            audio.muted = false;
         }
     }
 
-    btn.addEventListener('click', function () {
-        setMuted(!muted);
-    });
+    document.addEventListener('pointerdown', unlock, { once: true });
+    document.addEventListener('keydown', unlock, { once: true });
+    document.addEventListener('scroll', unlock, { once: true, passive: true });
 
-    if (!muted) {
-        play();
-        var resumeOnInteract = function () {
-            play();
-            document.removeEventListener('pointerdown', resumeOnInteract);
-            document.removeEventListener('keydown', resumeOnInteract);
-        };
-        document.addEventListener('pointerdown', resumeOnInteract, { once: true });
-        document.addEventListener('keydown', resumeOnInteract, { once: true });
-    }
+    btn.addEventListener('click', function () {
+        wantsSound = !wantsSound;
+        localStorage.setItem(MUTED_KEY, wantsSound ? 'false' : 'true');
+        render();
+        unlock();
+        audio.muted = !wantsSound;
+    });
 
     setInterval(function () {
         if (!audio.paused) {
