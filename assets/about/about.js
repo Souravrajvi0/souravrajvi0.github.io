@@ -241,9 +241,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 buttons.right.classList.remove('hidden');
                 buttons.top.classList.remove('hidden');
                 buttons.bottom.classList.remove('hidden');
-                buttons.left.textContent = 'Notes';
-                buttons.right.textContent = 'CV';
-                buttons.top.textContent = 'Config';
+                buttons.left.textContent = 'GitHub';
+                buttons.right.textContent = 'Resume';
+                buttons.top.textContent = 'Contact';
                 buttons.bottom.textContent = 'PRs';
                 break;
             case 'left':
