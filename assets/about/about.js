@@ -1,24 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const menuToggle = document.getElementById('menu-toggle');
-    const modalBg = document.getElementById('modal-bg');
-    const closeModal = document.getElementById('close-modal');
-
-    menuToggle.addEventListener('click', () => {
-        modalBg.classList.remove('hidden');
-    });
-
-    closeModal.addEventListener('click', () => {
-        modalBg.classList.add('hidden');
-    });
-
-    modalBg.addEventListener('click', (e) => {
-        if (e.target === modalBg) {
-            modalBg.classList.add('hidden');
-        }
-    });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
+function initAboutPage() {
     const sections = document.querySelectorAll('.section');
     const palette = ['#f8fafc', '#c7d2fe', '#93c5fd', '#a3e635', '#facc15'];
     const pixelSize = 8;
@@ -39,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let lastSpawnAt = 0;
 
         function resizeCanvas() {
+            if (!canvas.isConnected) return;
             const bounds = section.getBoundingClientRect();
             dpr = Math.min(window.devicePixelRatio || 1, 2);
             canvas.width = Math.floor(bounds.width * dpr);
@@ -75,6 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function renderPixels() {
+            if (!canvas.isConnected) {
+                animationFrame = null;
+                return;
+            }
+
             const width = canvas.width / dpr;
             const height = canvas.height / dpr;
             ctx.clearRect(0, 0, width, height);
@@ -111,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function handlePointer(clientX, clientY) {
+            if (!canvas.isConnected) return;
             const now = performance.now();
             if (now - lastSpawnAt < 22) return;
             lastSpawnAt = now;
@@ -130,98 +117,96 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
     });
-});
 
-document.addEventListener('DOMContentLoaded', () => {
     const mainSection = document.getElementById('main');
-    if (!mainSection) return;
+    if (mainSection) {
+        const rainCanvas = document.createElement('canvas');
+        rainCanvas.className = 'pixel-rain-canvas';
+        rainCanvas.setAttribute('aria-hidden', 'true');
+        mainSection.prepend(rainCanvas);
 
-    const canvas = document.createElement('canvas');
-    canvas.className = 'pixel-rain-canvas';
-    canvas.setAttribute('aria-hidden', 'true');
-    mainSection.prepend(canvas);
+        const rainCtx = rainCanvas.getContext('2d');
+        if (rainCtx) {
+            const drops = [];
+            const dropCount = 52;
+            const rainPalette = ['#c7d2fe', '#93c5fd', '#f8fafc', '#a3e635'];
+            let rainDpr = Math.min(window.devicePixelRatio || 1, 2);
+            let width = 0;
+            let height = 0;
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+            function resizeRainCanvas() {
+                if (!rainCanvas.isConnected) return;
+                const bounds = mainSection.getBoundingClientRect();
+                rainDpr = Math.min(window.devicePixelRatio || 1, 2);
+                width = bounds.width;
+                height = bounds.height;
+                rainCanvas.width = Math.floor(width * rainDpr);
+                rainCanvas.height = Math.floor(height * rainDpr);
+                rainCtx.setTransform(1, 0, 0, 1, 0, 0);
+                rainCtx.scale(rainDpr, rainDpr);
+            }
 
-    const drops = [];
-    const dropCount = 52;
-    const palette = ['#c7d2fe', '#93c5fd', '#f8fafc', '#a3e635'];
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let width = 0;
-    let height = 0;
+            function resetDrop(drop, initial = false) {
+                const startBand = Math.max(width, height) * 0.35;
+                drop.x = initial ? Math.random() * width : (Math.random() * (width + startBand)) - startBand;
+                drop.y = initial ? Math.random() * height : -Math.random() * (height * 0.45 + 80);
+                drop.vx = 0.9 + Math.random() * 1.4;
+                drop.vy = 1.3 + Math.random() * 1.9;
+                drop.length = 10 + Math.floor(Math.random() * 4) * 4;
+                drop.size = 4 + Math.floor(Math.random() * 2) * 4;
+                drop.alpha = 0.15 + Math.random() * 0.22;
+                drop.color = rainPalette[Math.floor(Math.random() * rainPalette.length)];
+            }
 
-    function resizeCanvas() {
-        const bounds = mainSection.getBoundingClientRect();
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
-        width = bounds.width;
-        height = bounds.height;
-        canvas.width = Math.floor(width * dpr);
-        canvas.height = Math.floor(height * dpr);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(dpr, dpr);
-    }
+            function initDrops() {
+                drops.length = 0;
+                for (let i = 0; i < dropCount; i++) {
+                    const drop = {};
+                    resetDrop(drop, true);
+                    drops.push(drop);
+                }
+            }
 
-    function resetDrop(drop, initial = false) {
-        const startBand = Math.max(width, height) * 0.35;
-        drop.x = initial ? Math.random() * width : (Math.random() * (width + startBand)) - startBand;
-        drop.y = initial ? Math.random() * height : -Math.random() * (height * 0.45 + 80);
-        drop.vx = 0.9 + Math.random() * 1.4;
-        drop.vy = 1.3 + Math.random() * 1.9;
-        drop.length = 10 + Math.floor(Math.random() * 4) * 4;
-        drop.size = 4 + Math.floor(Math.random() * 2) * 4;
-        drop.alpha = 0.15 + Math.random() * 0.22;
-        drop.color = palette[Math.floor(Math.random() * palette.length)];
-    }
+            function renderRain() {
+                if (!rainCanvas.isConnected) return;
 
-    function initDrops() {
-        drops.length = 0;
-        for (let i = 0; i < dropCount; i++) {
-            const drop = {};
-            resetDrop(drop, true);
-            drops.push(drop);
+                rainCtx.clearRect(0, 0, width, height);
+
+                for (const drop of drops) {
+                    drop.x += drop.vx;
+                    drop.y += drop.vy;
+
+                    if (drop.y - drop.length > height || drop.x - drop.length > width) {
+                        resetDrop(drop, false);
+                    }
+
+                    rainCtx.globalAlpha = drop.alpha;
+                    rainCtx.fillStyle = drop.color;
+
+                    for (let segment = 0; segment < 3; segment++) {
+                        const segX = Math.round((drop.x - segment * drop.length) / 8) * 8;
+                        const segY = Math.round((drop.y - segment * drop.length) / 8) * 8;
+                        const segAlpha = drop.alpha * (1 - segment * 0.28);
+                        rainCtx.globalAlpha = segAlpha;
+                        rainCtx.fillRect(segX, segY, drop.size, drop.size);
+                    }
+                }
+
+                rainCtx.globalAlpha = 1;
+                requestAnimationFrame(renderRain);
+            }
+
+            window.addEventListener('resize', () => {
+                resizeRainCanvas();
+                initDrops();
+            });
+
+            resizeRainCanvas();
+            initDrops();
+            requestAnimationFrame(renderRain);
         }
     }
 
-    function renderRain() {
-        ctx.clearRect(0, 0, width, height);
-
-        for (const drop of drops) {
-            drop.x += drop.vx;
-            drop.y += drop.vy;
-
-            if (drop.y - drop.length > height || drop.x - drop.length > width) {
-                resetDrop(drop, false);
-            }
-
-            ctx.globalAlpha = drop.alpha;
-            ctx.fillStyle = drop.color;
-
-            for (let segment = 0; segment < 3; segment++) {
-                const segX = Math.round((drop.x - segment * drop.length) / 8) * 8;
-                const segY = Math.round((drop.y - segment * drop.length) / 8) * 8;
-                const segAlpha = drop.alpha * (1 - segment * 0.28);
-                ctx.globalAlpha = segAlpha;
-                ctx.fillRect(segX, segY, drop.size, drop.size);
-            }
-        }
-
-        ctx.globalAlpha = 1;
-        requestAnimationFrame(renderRain);
-    }
-
-    window.addEventListener('resize', () => {
-        resizeCanvas();
-        initDrops();
-    });
-
-    resizeCanvas();
-    initDrops();
-    requestAnimationFrame(renderRain);
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const sections = document.querySelectorAll('.section');
     let currentSection = 'main';
 
     const buttons = {
@@ -346,18 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const menuToggle = document.getElementById('menu-toggle');
-    const modalBg = document.getElementById('modal-bg');
-    const closeModal = document.getElementById('close-modal');
-
-    menuToggle.addEventListener('click', () => {
-        modalBg.classList.toggle('hidden');
-    });
-
-    closeModal.addEventListener('click', () => {
-        modalBg.classList.add('hidden');
-    });
-
     const artworkContainer = document.querySelector('.artwork-container');
     const prList = PR_LIST;
     const prPerPage = PR_ITEMS_PER_PAGE;
@@ -406,9 +379,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadPRPage(currentPage);
     updateButtons();
-});
 
-document.getElementById('menu-toggle').addEventListener('click', function () {
-    const menu = document.getElementById('mobile-menu');
-    menu.classList.toggle('hidden');
-});
+    const menuToggle2 = document.getElementById('menu-toggle');
+    if (menuToggle2) {
+        menuToggle2.addEventListener('click', function () {
+            const menu = document.getElementById('mobile-menu');
+            if (menu) menu.classList.toggle('hidden');
+        });
+    }
+}
+
+window.initAboutPage = initAboutPage;

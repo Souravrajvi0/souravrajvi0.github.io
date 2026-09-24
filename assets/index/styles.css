@@ -476,10 +476,17 @@ body {
   display: flex;
   flex-direction: column;
   height: 340px; /* Fixed height for all cards */
+  min-width: 0;
+  overflow: hidden;
 }
 
 .review-card:hover {
   transform: translateY(-5px);
+}
+
+.review-card .flex-grow {
+  min-width: 0;
+  width: 100%;
 }
 
 .review-card .flex-grow p {
@@ -489,6 +496,12 @@ body {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 10;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
 }
 
 @media (max-width: 767px) {

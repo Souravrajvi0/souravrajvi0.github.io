@@ -22,6 +22,7 @@ class ReviewCard extends HTMLElement {
             <style>
                 .review-card-wrapper {
                     width: 280px;
+                    max-width: 100%;
                     flex-shrink: 0;
                     margin-right: 1.5rem;
                     padding: 1rem;
@@ -29,12 +30,23 @@ class ReviewCard extends HTMLElement {
                     flex-direction: column;
                     justify-content: space-between;
                     height: 100%;
+                    min-width: 0;
+                    overflow: hidden;
                 }
                 
                 @media (min-width: 768px) {
                     .review-card-wrapper {
                         width: 300px;
                     }
+                }
+
+                .review-card-wrapper .flex-grow,
+                .review-card-wrapper p {
+                    min-width: 0;
+                    width: 100%;
+                    max-width: 100%;
+                    overflow-wrap: anywhere;
+                    word-break: break-word;
                 }
                 
                 .pfp-sprite-comp {
