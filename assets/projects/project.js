@@ -13,19 +13,10 @@ const characterDisappearSound = document.getElementById(
 const muteButton = document.getElementById("muteButton");
 
 let isMuted = false;
-backgroundSound.volume = MARIO_VOLUME_LEVEL;
+backgroundSound.volume = 0;
+backgroundSound.pause();
 sectionAppearSound.volume = MARIO_VOLUME_LEVEL;
 characterDisappearSound.volume = MARIO_VOLUME_LEVEL;
-
-backgroundSound.play().catch(function () {
-  const resumeOnInteract = function () {
-    backgroundSound.play().catch(function () {});
-    document.removeEventListener("pointerdown", resumeOnInteract);
-    document.removeEventListener("keydown", resumeOnInteract);
-  };
-  document.addEventListener("pointerdown", resumeOnInteract, { once: true });
-  document.addEventListener("keydown", resumeOnInteract, { once: true });
-});
 
 characterDisappearSound.addEventListener("play", function () {
   showModal();
@@ -39,14 +30,12 @@ muteButton.addEventListener("click", function () {
     isMuted = false;
     muteButton.classList.remove("muted");
     muteButton.classList.add("unmuted");
-    backgroundSound.volume = MARIO_VOLUME_LEVEL;
     sectionAppearSound.volume = MARIO_VOLUME_LEVEL;
     characterDisappearSound.volume = MARIO_VOLUME_LEVEL;
   } else {
     isMuted = true;
     muteButton.classList.remove("unmuted");
     muteButton.classList.add("muted");
-    backgroundSound.volume = 0;
     sectionAppearSound.volume = 0;
     characterDisappearSound.volume = 0;
   }
