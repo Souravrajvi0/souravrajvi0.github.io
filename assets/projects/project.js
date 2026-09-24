@@ -12,10 +12,20 @@ const characterDisappearSound = document.getElementById(
 );
 const muteButton = document.getElementById("muteButton");
 
-let isMuted = true;
-backgroundSound.volume = 0;
+let isMuted = false;
+backgroundSound.volume = MARIO_VOLUME_LEVEL;
+sectionAppearSound.volume = MARIO_VOLUME_LEVEL;
+characterDisappearSound.volume = MARIO_VOLUME_LEVEL;
 
-backgroundSound.play();
+backgroundSound.play().catch(function () {
+  const resumeOnInteract = function () {
+    backgroundSound.play().catch(function () {});
+    document.removeEventListener("pointerdown", resumeOnInteract);
+    document.removeEventListener("keydown", resumeOnInteract);
+  };
+  document.addEventListener("pointerdown", resumeOnInteract, { once: true });
+  document.addEventListener("keydown", resumeOnInteract, { once: true });
+});
 
 characterDisappearSound.addEventListener("play", function () {
   showModal();
