@@ -1,0 +1,17 @@
+{
+  "name": "bogusdeck.github.io-main",
+  "version": "1.0.0",
+  "description": "This document mirrors the live `design.html` visual reference. Retro 1-bit / NES pixel-art aesthetic.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "tailwindcss -i ./assets/css/src/tailwind-input.css -o ./assets/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./assets/css/src/tailwind-input.css -o ./assets/css/tailwind.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}
