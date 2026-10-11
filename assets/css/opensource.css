@@ -35,6 +35,14 @@ body {
 .post-ref { color: #9ca3af; font-size: 11px; width: 100%; }
 .post-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.75rem; }
 .post-tag { background: #374151; color: #d1d5db; font-size: 10px; padding: 2px 6px; }
-.post-body { margin-top: 0.75rem; color: #e5e7eb; font-size: 13px; line-height: 1.7; }
-.post-body p { margin-bottom: 0.9rem; }
+.post-body { margin-top: 1rem; color: #e5e7eb; font-size: 14px; line-height: 1.8; max-width: 72ch; }
+.post-body p { margin-bottom: 1.4rem; }
+.post-body .ln { display: block; margin-bottom: 0.45rem; }
+.post-body .hook { font-size: 16px; font-weight: 600; color: #fff; border-left: 3px solid #facc15; padding-left: 0.75rem; }
+.post-body .arrow { padding-left: 1.25rem; color: #cbd5e1; }
+.post-body .step { color: #facc15; font-weight: 600; margin-top: 0.6rem; }
+.post-body .step + .ln:not(.step):not(.arrow) { color: #e5e7eb; }
+.post-body .lead { font-weight: 600; color: #fff; }
+.post-body .closer { font-style: italic; color: #fff; border-top: 1px dashed #4b5563; padding-top: 1rem; }
 .post-body a { color: #60a5fa; text-decoration: underline; word-break: break-all; }
+.post-body .hashtags { color: #9ca3af; font-size: 12px; }
