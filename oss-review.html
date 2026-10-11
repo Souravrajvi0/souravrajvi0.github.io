@@ -73,8 +73,174 @@
         </div>
 
         <h2 class="text-center title text-sm md:text-lg mx-4">LinkedIn Posts: Open-Source PRs</h2>
-        <p class="text-center text-gray-400 text-xs mx-4">51 write-ups on merged PRs. Click a post to expand.</p>
+        <p class="text-center text-gray-400 text-xs mx-4">54 write-ups on merged PRs. Click a post to expand.</p>
 
+<details class="post-card boxxy">
+<summary><span class="post-num">#1</span> <span class="post-title">Missing BOS token made a healthy base model generate garbage</span><span class="post-ref">unslothai/unsloth#10312</span></summary>
+<div class="post-tags"><span class="post-tag">Gemma 4</span><span class="post-tag">tokenization</span><span class="post-tag">BOS token</span><span class="post-tag">LLM</span><span class="post-tag">Unsloth</span><span class="post-tag">Python</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>A missing special token didn't crash the model.<br>
+It made a perfectly valid base LLM generate garbage , and the bug only became obvious when we compared the exact input IDs.</p>
+<p>My model was loaded correctly. Prompt was correct<br>
+The seed was fixed.<br>
+And Gemma 4 E2B base still repeated the same phrase forever:</p>
+<p>This book is largely concerned with Hobbits, and from its pages,<br>
+ “its pages, its pages, its pages, its page”</p>
+<p>Then I made one change:<br>
+Add a &lt;bos&gt; token to the beginning of the input.<br>
+Same model.<br>
+Same prompt.<br>
+Same seed.<br>
+The output became coherent.</p>
+<p>The model itself wasn't broken.<br>
+The problem was in the input-tokenization path.<br>
+Gemma 4 base models could reach inference without the BOS behavior expected for raw completion. The -it models didn't show the same problem because their chat templates already emit BOS.</p>
+<p>That made this easy to misdiagnose:<br>
+It looked like a model-generation problem.<br>
+It was actually an input-tokenization problem.</p>
+<p>The first fix was straightforward: enable BOS for the affected Gemma 4 base models.<br>
+But review uncovered more edge cases.</p>
+<p>A simple model-name check wasn't enough:<br>
+→ Local paths don't necessarily match the Hub name<br>
+→ Quantized models can have additional suffixes<br>
+→ Chat templates may already emit BOS<br>
+→ Adding another one creates duplicate BOS tokens</p>
+<p>So the final implementation detects Gemma 4 from the loaded tokenizer/model configuration, rather than relying only on the model name.<br>
+For raw completion, it repairs the missing BOS behavior.<br>
+For chat, it checks whether the rendered prompt already contains BOS before adding another.</p>
+<p>The final verification was more interesting than simply checking whether the test passed.<br>
+For unsloth/gemma-4-E2B, with seed 3407:<br>
+Before the fix:<br>
+49–59 token longest repetition runs<br>
+With the fix:<br>
+1–3 token longest repetition runs</p>
+<p>The generated token IDs also matched the known-good hardcoded-BOS control exactly.<br>
+We then tested 28 real tokenizers and verified that existing models — Llama, Qwen, Mistral, Phi, Gemma, etc. — remained byte-identical before and after the change.</p>
+<p>What I learned:</p>
+<p>1. LLM bugs don't always look like model bugs.<br>
+If generation becomes repetitive or nonsensical, inspect the input IDs before changing sampling parameters or blaming the checkpoint</p>
+<p>2. Special tokens are part of the model interface<br>
+BOS/EOS tokens, tokenizer configuration, and chat templates aren't just preprocessing. They directly affect the sequence the model sees.</p>
+<p>3. Fixing a tokenizer can introduce another bug<br>
+Adding BOS globally might fix raw completion but create duplicate BOS when a chat template already emits it.</p>
+<p>The right question isn't:<br>
+“Should I add BOS?”<br>
+It's:<br>
+“Does the final sequence already contain BOS?”</p>
+<p>4. Test token IDs, not just decoded text<br>
+Decoded output can make a tokenizer bug look like a model-quality problem. Comparing the actual token sequence gives a cleaner signal.</p>
+<p>One special token can completely change the behavior of an otherwise healthy LLM.</p>
+<p><a href="https://lnkd.in/gHbyK5Zt" target="_blank" rel="noopener noreferrer">https://lnkd.in/gHbyK5Zt</a><br>
+<a href="https://github.com/unslothai/unsloth/pull/10312" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10312</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#2</span> <span class="post-title">Embedding model loaded, embeddings API returned 501</span><span class="post-ref">unslothai/unsloth#9149</span></summary>
+<div class="post-tags"><span class="post-tag">GGUF</span><span class="post-tag">embeddings</span><span class="post-tag">llama.cpp</span><span class="post-tag">Unsloth Studio</span><span class="post-tag">Python</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The embedding model loaded successfully. The embeddings API still returned HTTP 501.</p>
+<p>This one took me into a pretty interesting edge case in Unsloth AI Studio.</p>
+<p>The setup was simple:<br>
+Load an embedding model as GGUF.<br>
+Call:<br>
+/v1/embeddings<br>
+And get:<br>
+501 — This server does not support embeddings. Start it with --embedding</p>
+<p>But the model was fine.</p>
+<p>The problem was how Studio decided whether to start llama-server in embedding mode.<br>
+It was looking at one piece of GGUF metadata: pooling_type</p>
+<p>If the header said MEAN, CLS, or LAST, we started with --embedding.<br>
+The problem?<br>
+That field is optional.</p>
+<p>Some embedding models simply don't include it.<br>
+So we had a perfectly valid embedding model that looked like an ordinary chat model to the launcher.</p>
+<p>The interesting part was deciding what to do when the metadata is missing.<br>
+The fix wasn't:<br>
+“If pooling_type is missing, assume it's an embedding model.”</p>
+<p>That would be dangerous.<br>
+Instead, the detection now falls back to other signals:<br>
+→ GGUF architecture<br>
+→ model-name hints<br>
+→ dedicated embedding architectures such as nomic-bert and llama-embed</p>
+<p>But there's an important rule:<br>
+Fallbacks can fill in missing information. They shouldn't override explicit information.<br>
+So if the GGUF explicitly says NONE or RANK, we respect it.</p>
+<p>That distinction ended up being important during review too. A generic bert architecture can also represent reranker/classifier models, so the fallback had to be conservative and fail closed when the evidence was ambiguous.</p>
+<p>The result:<br>
+nomic-embed-text-v1.5<br>
+Before: HTTP 501<br>
+After: HTTP 200 + 768-dimensional embeddings</p>
+<p>We also added tests for GGUFs without pooling_type, including synthetic embedding models, and ran an A/B comparison where the old implementation had 27 failures and the fixed version had 312/312 tests passing.</p>
+<p>What I took away from this:</p>
+<p>1. Optional metadata should actually be treated as optional.<br>
+If your system depends on a field that isn't guaranteed to exist, you need a fallback strategy.</p>
+<p>2. Fallbacks need precedence rules.<br>
+Use secondary signals to fill gaps , never to silently override explicit metadata.</p>
+<p>3. Model detection is a classification problem.<br>
+Architecture, metadata, naming, and model behavior can all be signals. No single field should automatically become the entire truth.</p>
+<p>4. Fail closed when the evidence is ambiguous.<br>
+A false positive can be just as problematic as a false negative , especially when embedding and reranking models can share architectural characteristics.</p>
+<p>This is one of those bugs where the model itself wasn't broken, Our assumptions about the model metadata were</p>
+<p><a href="https://lnkd.in/gZcZUbqC" target="_blank" rel="noopener noreferrer">https://lnkd.in/gZcZUbqC</a><br>
+<a href="https://lnkd.in/gQsQ_hD9" target="_blank" rel="noopener noreferrer">https://lnkd.in/gQsQ_hD9</a><br>
+<a href="https://github.com/unslothai/unsloth/pull/9149" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9149</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#3</span> <span class="post-title">token=False still used my Hugging Face token</span><span class="post-ref">unslothai/unsloth</span></summary>
+<div class="post-tags"><span class="post-tag">credential handling</span><span class="post-tag">subprocess</span><span class="post-tag">Hugging Face</span><span class="post-tag">Unsloth</span><span class="post-tag">Python</span><span class="post-tag">security</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>“I passed token=False. It used my token anyway.”</p>
+<p>I found this while working on the LoRA → GGUF export path in Unsloth AI.</p>
+<p>At first, it looked like a simple argument-forwarding bug.<br>
+save_pretrained_gguf(..., token=False) wasn't forwarding the argument to the LoRA save path.<br>
+So the callee fell back to get_token() and picked up the operator's Hugging Face credential.</p>
+<p>Easy fix.<br>
+Except it wasn't.</p>
+<p>The converter runs in a child process with os.environ.copy().<br>
+So even after fixing the function argument, the child process could still inherit the operator's credentials.</p>
+<p>That led to the bigger problem:<br>
+Passing token=False is not enough if the process that actually performs the operation still has access to the credential.</p>
+<p>There were also other credential paths to account for:<br>
+→ token aliases<br>
+→ HF_TOKEN_PATH<br>
+→ OIDC environment variables<br>
+→ another converter with the same environment handling<br>
+→ an imatrix path that resolved the token too early</p>
+<p>The fix was to make the credential boundary explicit:<br>
+→ str → use this token<br>
+→ None → ambient credentials are allowed<br>
+→ False → credentials are explicitly denied</p>
+<p>For the denied case, the subprocess environment is actively scrubbed instead of simply omitting a token.</p>
+<p>Then came another important change.<br>
+Instead of writing a test that only reproduces this particular bug, I added an AST test that checks for the dangerous pattern:<br>
+os.environ.copy() → child process</p>
+<p>If a converter creates its own environment without going through the credential boundary, the test fails.<br>
+That caught another instance of the same problem.</p>
+<p>What I think is useful is</p>
+<p>1. API-level security controls are not enough.<br>
+If your function eventually launches a subprocess, the subprocess is part of your security boundary.<br>
+Check what it inherits.</p>
+<p>2. “Not provided” and “explicitly denied” are different states.<br>
+Using None, False, and a real credential as three distinct states prevented an important class of fallback bugs.</p>
+<p>3. Test the pattern, not just the incident.<br>
+A regression test can prove that this bug is fixed.<br>
+A structural test can help prevent the next version of the same bug.</p>
+<p>4. Audit indirect credential paths.<br>
+Environment variables aren't the only source.<br>
+Token files, aliases, cached credentials, and identity/OIDC variables can all change what a subprocess is actually capable of doing.</p>
+<p>5. Be precise about the security boundary.<br>
+This fix prevents the child from sending the operator's credential to the Hub.<br>
+It does not mean the child has zero access to every piece of locally cached Hugging Face data. A private config already present in the shared cache remains readable.</p>
+<p>We verified token=False across huggingface_hub 0.34 → 1.30:<br>
+216/216 in-process cases<br>
+90/90 wire-level cases</p>
+<p>No authorization header was emitted in the denied case.</p>
+<p>The thing I took away from this:<br>
+A security boundary isn't where you say “no.”<br>
+It's where the credential can actually cross the boundary</p>
+</div>
+</details>
 <details class="post-card boxxy">
 <summary><span class="post-num">#4</span> <span class="post-title">SSH sandbox bypass via Python libraries</span><span class="post-ref">unslothai/unsloth#10642</span></summary>
 <div class="post-tags"><span class="post-tag">AI agents</span><span class="post-tag">sandbox security</span><span class="post-tag">SSH</span><span class="post-tag">paramiko</span><span class="post-tag">Python</span><span class="post-tag">Unsloth Studio</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
