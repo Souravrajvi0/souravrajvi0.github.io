@@ -72,6 +72,1983 @@
             <p class="text-white mt-2 headingfont">Add this week's open-source progress here: PRs opened/merged, reviews given, issues triaged, and anything learned.</p>
         </div>
 
+        <h2 class="text-center title text-sm md:text-lg mx-4">LinkedIn Posts: Open-Source PRs</h2>
+        <p class="text-center text-gray-400 text-xs mx-4">51 write-ups on merged PRs. Click a post to expand.</p>
+
+<details class="post-card boxxy">
+<summary><span class="post-num">#4</span> <span class="post-title">SSH sandbox bypass via Python libraries</span><span class="post-ref">unslothai/unsloth#10642</span></summary>
+<div class="post-tags"><span class="post-tag">AI agents</span><span class="post-tag">sandbox security</span><span class="post-tag">SSH</span><span class="post-tag">paramiko</span><span class="post-tag">Python</span><span class="post-tag">Unsloth Studio</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The agent sandbox blocked the ssh command. It did not block ssh.</p>
+<p>I found this while working on the AI agent tool-calling sandbox in Unsloth Studio's backend.</p>
+<p>The rule was simple:<br>
+ssh, scp and sftp were hard-blocked at execution time.<br>
+Even after the user approved the tool call.</p>
+<p>So the policy looked airtight.</p>
+<p>Then I looked at the Python side.<br>
+paramiko, asyncssh and fabric could open the same connection.<br>
+Especially when the hostname was a variable that static analysis couldn't resolve.</p>
+<p>Same capability. Two paths. Only one of them had a guard.</p>
+<p>Easy fix. Block the libraries too.<br>
+Except it wasn't.</p>
+<p>That would make the sandbox consistent, but also useless for the one legitimate workflow people actually want: an agent deploying to a server the user has reviewed and approved.</p>
+<p>A blanket ban only pushes people toward bypasses.</p>
+<p>So I replaced the hard blocklist with a per-session approved-server allowlist, and put both paths behind the same policy:<br>
+→ Terminal: ssh, scp, sftp<br>
+→ Python: paramiko, asyncssh, fabric connect patterns<br>
+→ Dynamic hosts (ssh $HOST, connect(hostname)) fail closed until a literal host is approved<br>
+→ Allowing a tool call records that target host for the session only</p>
+<p>The model proposes a command. The user sees it and approves it. The host is recorded. Later calls to that host work. Everything else stays blocked.</p>
+<p>I also exposed small API endpoints to approve and list hosts per session, and added a large regression suite covering host extraction from shell commands and Python AST, gating, and execution.</p>
+<p>What I learned:</p>
+<p>1. A security policy has to cover the capability, not the tool name.<br>
+If you block a CLI but not the library that does the same thing, you've blocked a spelling.</p>
+<p>2. Dynamic values are where guards quietly fail.<br>
+If you can't resolve a host statically, the safe answer is "not approved yet", not "probably fine".</p>
+<p>3. Hard blocks and approvals are different tools.<br>
+A hard block says never. An allowlist says only what a human has seen. Agents need the second one.</p>
+<p>4. Scope approvals narrowly.<br>
+Per session, per host. Not forever, not for everything.</p>
+<p>5. Put every path behind one policy.<br>
+Two code paths with two implementations of the same rule will drift.</p>
+<p>Agent safety isn't about saying no louder. It's about making "yes" specific.</p>
+<p>#Unsloth #AIEngineering #AIAgents #Python #APISecurity</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/10642" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10642</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#5</span> <span class="post-title">Token-shaped string took the operator cache fast path</span><span class="post-ref">unslothai/unsloth#10264</span></summary>
+<div class="post-tags"><span class="post-tag">API security</span><span class="post-tag">Hugging Face Hub</span><span class="post-tag">authorization</span><span class="post-tag">caching</span><span class="post-tag">Python</span><span class="post-tag">Unsloth Studio</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>I sent a fake API key. Unsloth Studio served me cached data anyway.</p>
+<p>Working on Hugging Face Hub token authorization in the Unsloth Studio backend, I ran into this.</p>
+<p>The earlier fix keyed every disk-cache gate on one check: is_anonymous(hf_token).</p>
+<p>That is only true when the caller sent no token. So the gate was really asking "Did the caller send nothing?" and not "Is this credential allowed to see this repo?"</p>
+<p>Any token-shaped string left the anonymous sentinel and took the same fast paths as the operator:<br>
+→ cached dataset previews<br>
+→ the chat template walk<br>
+→ config and audio probes<br>
+→ GGUF listings</p>
+<p>A dummy string was enough.</p>
+<p>There were many gates across routes, services and utils. Eight separate checks would drift apart, and the next endpoint would forget one. So I wrote one helper and applied it at all of them.</p>
+<p>It treats the three caller states differently:<br>
+→ the sentinel: no cache<br>
+→ ambient or UI session: cache, with no extra Hub call<br>
+→ explicit token: cache only after HfApi.repo_info succeeds for that specific repo</p>
+<p>The answer is memoized for 60 seconds, so the Hub round trip isn't paid on every request.</p>
+<p>Details that mattered:<br>
+→ Unexpected types fail closed instead of falling into the ambient branch<br>
+→ Local paths are never probed, so a caller's path and bearer token don't go over the wire<br>
+→ Offline, an explicit token is denied rather than stalling on a probe</p>
+<p>UI sessions keep the fast path. A made-up API key doesn't.</p>
+<p>I added regression tests for the caller-identity cases: 84 passed. Two others need the datasets package and were skipped, same as before.</p>
+<p>Four lessons:</p>
+<p>1. A sentinel identifies a class of caller, not a credential.<br>
+"Not anonymous" is not the same as "authorized".</p>
+<p>2. Gate on the resource, not the string.</p>
+<p>3. Centralize the check. One helper at many gates beats many slightly different checks.</p>
+<p>4. Default to deny.<br>
+Anything unexpected should land on the closed side.</p>
+<p>A cache is an authorization boundary too.</p>
+<p>#Unsloth #BackendEngineering #APISecurity #HuggingFace #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/10264" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10264</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#6</span> <span class="post-title">Batch retrieve leaked provider file ids</span><span class="post-ref">BerriAI/litellm#34092</span></summary>
+<div class="post-tags"><span class="post-tag">LiteLLM</span><span class="post-tag">LLM gateway</span><span class="post-tag">API security</span><span class="post-tag">authorization</span><span class="post-tag">batch API</span><span class="post-tag">OpenAI</span><span class="post-tag">Python</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>Every route in the LiteLLM batch flow worked. Then the results download returned a 500.</p>
+<p>And that wasn't the worst part.</p>
+<p>I traced it while working on the LiteLLM proxy, the LLM API gateway.</p>
+<p>The flow:<br>
+→ upload a JSONL, get a managed file id back<br>
+→ create a batch<br>
+→ poll until it completes</p>
+<p>Then the completed batch response handed back a raw provider output_file_id. An OpenAI-style file-abc123, not the managed id the gateway had given out everywhere else.</p>
+<p>Downloading it through the gateway failed, because no managed-file row existed for it. Worse, raw ids skip managed-file ownership checks.</p>
+<p>On the old code, a different key on the proxy could download another user's batch output. I reproduced that against a live proxy with a real batch: the intruder got a 200.</p>
+<p>A unified-id lookup on retrieve only works if the row already exists, and terminal batches persisted before output registration existed had none. So retrieve now registers the missing row itself.</p>
+<p>Then the real question: who owns it? The caller who happened to retrieve it would hand the file to whoever polled first. Instead the row goes to the durable batch owner from the stored batch record. If there is no real owner on the record, registration is skipped rather than guessed.</p>
+<p>Output and error ids now always come back as unified managed ids.</p>
+<p>After the fix, on the same batch and database state:<br>
+→ owner retrieve returns a unified id<br>
+→ owner download returns 200<br>
+→ intruder download returns 403</p>
+<p>I added regression tests, including a cross-user denial test that runs the real managed-files hook.</p>
+<p>What I took from it:</p>
+<p>1. A convenience field can be an authorization bypass.<br>
+A raw upstream id skips every check keyed on your own id.</p>
+<p>2. Ownership belongs to the creator.<br>
+Not whoever touched the resource last.</p>
+<p>3. Heal missing state at the read path.<br>
+Legacy rows exist in production.</p>
+<p>4. Prove it with two identities.<br>
+A single-user test can pass while another user can still read the data.</p>
+<p>Still open: concurrent retrieves can mint separate ids for the same file. Both carry the same owner, so authorization holds.</p>
+<p>An id the gateway didn't issue is an id the gateway can't protect.</p>
+<p>#LiteLLM #BackendEngineering #APISecurity #LLM #Python</p>
+<p><a href="https://github.com/BerriAI/litellm/pull/34092" target="_blank" rel="noopener noreferrer">https://github.com/BerriAI/litellm/pull/34092</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#7</span> <span class="post-title">Desktop SPA on loopback without opening the door</span><span class="post-ref">unslothai/unsloth#10847</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">desktop app</span><span class="post-tag">DNS rebinding</span><span class="post-tag">loopback</span><span class="post-tag">Python</span><span class="post-tag">FastAPI</span><span class="post-tag">API security</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>http://127.0.0.1:8888 returned 404. The same app on the LAN IP worked.</p>
+<p>I ran into this in the backend of the Unsloth Studio desktop app.</p>
+<p>Desktop runs the backend with --api-only on 127.0.0.1. The packaged web UI was only served to the Cloudflare edge or the LAN listener.</p>
+<p>So the one address you'd naturally try first, localhost, got nothing.</p>
+<p>There was a second cost. Loopback is a browser secure context, so mic dictation through getUserMedia was blocked there too.</p>
+<p>Quick fix. Serve the UI on loopback.<br>
+The obvious fix had a catch.</p>
+<p>"Looks like loopback" is exactly the kind of check that gets bypassed:<br>
+→ a reverse proxy on the same machine makes remote traffic look local<br>
+→ a forwarded header can claim anything<br>
+→ a malicious page can rebind a hostname to 127.0.0.1</p>
+<p>So the gate admits a request only if all of these hold:<br>
+→ the listening socket is loopback<br>
+→ the peer address is loopback<br>
+→ the Host header is loopback<br>
+→ no Forwarded, X-Forwarded-*, X-Real-IP or CF-Connecting-IP header is present</p>
+<p>I reused the same check that already gates bootstrap password injection, rather than inventing a second definition of "local". Bootstrap injection itself is unchanged.</p>
+<p>I ran a real uvicorn server and compared base against the fix:<br>
+GET / via 127.0.0.1: 404 -&gt; 200<br>
+GET / with Host: localhost: 404 -&gt; 200<br>
+GET /chat deep link: 404 -&gt; 200<br>
+GET / with X-Forwarded-For: 404 -&gt; 404<br>
+GET / with CF-Connecting-IP: 404 -&gt; 404<br>
+GET / with Host: evil.example: 404 -&gt; 404</p>
+<p>The targeted test files ran 246 passed. Three updated tests fail on main.</p>
+<p>What I learned:</p>
+<p>1. Loopback is a combination of facts, not one.<br>
+Socket, peer and Host all have to agree.</p>
+<p>2. Proxy headers are evidence of a proxy.<br>
+If they're present, it isn't a direct local browser.</p>
+<p>3. The Host header is attacker-influenced.<br>
+Checking it is what stops DNS rebinding.</p>
+<p>4. Reuse the existing trust predicate.<br>
+Two definitions of "local" will eventually disagree.</p>
+<p>5. Test the rejections as carefully as the success.<br>
+The 404s that stayed 404 were half the point.</p>
+<p>Making something reachable is easy. Making it reachable only to the right caller is the work.</p>
+<p>#Unsloth #BackendEngineering #APISecurity #FastAPI #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/10847" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10847</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#8</span> <span class="post-title">Tool file worked in test-run, failed when published</span><span class="post-ref">langgenius/dify#41300</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">LLM workflows</span><span class="post-tag">AI agents</span><span class="post-tag">file access</span><span class="post-tag">authorization</span><span class="post-tag">Python</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The workflow worked in the test-run. The published version sent the LLM no image.</p>
+<p>Tracing an LLM workflow in Dify's backend, I hit this: a workflow that downloads an image in a tool node and passes it to a later LLM vision node.</p>
+<p>In the orchestration test-run: fine.<br>
+Invoked from an Agent as a published workflow: the prompt arrived with files: [].</p>
+<p>No error. Just a missing image.</p>
+<p>The difference was the file-access scope.<br>
+→ Orchestration binds an Account scope, so plugin ToolFile rows are readable<br>
+→ Agent chat binds an EndUser scope</p>
+<p>And plugin uploads often store ToolFile.user_id as a different identity than the chatting end user. The later lookup then fails the ownership filter and the file silently drops out.</p>
+<p>The obvious fix. Loosen the ownership check for tool files.<br>
+It wasn't that simple.</p>
+<p>That ownership filter is there for a reason. Relaxing it would let one user's file be read by another, and I'd have traded a missing image for a data-access problem.</p>
+<p>So I followed a pattern Dify already has for upload files: an explicit grant.</p>
+<p>When the tool message transformer produces a tool_file_id, it records that id on the current FileAccessScope. Later nodes in the same execution can attach those files.</p>
+<p>The grant is:<br>
+→ per execution, not global<br>
+→ limited to files this run produced<br>
+→ additive: ungranted tool files still require a matching user_id</p>
+<p>I added tests for both sides: the transformer grants the file to the current end-user scope, and build_from_mapping accepts a granted tool file for a different end user. I also ran the existing file-access unit tests.</p>
+<p>What I learned:</p>
+<p>1. Silent failures are the expensive ones.<br>
+An empty file list looks like success until someone reads the output.</p>
+<p>2. Test-run and production can run under different identities.<br>
+If a workflow passes in one scope, check it in the other.</p>
+<p>3. Don't loosen a check to fix a symptom.<br>
+Ask what the code legitimately needs access to, and grant exactly that.</p>
+<p>4. Grant by provenance.<br>
+A file produced by this run is a different thing from a file that merely exists.</p>
+<p>5. Reuse the established pattern.<br>
+Mirroring the upload-file grant kept the change small and easy to review.</p>
+<p>The safest fix to an access bug is a narrower grant, not a weaker check.</p>
+<p>#Dify #AIEngineering #LLM #AIAgents #Python</p>
+<p><a href="https://github.com/langgenius/dify/pull/41300" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify/pull/41300</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#9</span> <span class="post-title">Zotero RAG connector hardening</span><span class="post-ref">infiniflow/ragflow#19742</span></summary>
+<div class="post-tags"><span class="post-tag">RAG</span><span class="post-tag">RAGFlow</span><span class="post-tag">SSRF</span><span class="post-tag">API security</span><span class="post-tag">Python</span><span class="post-tag">Go</span><span class="post-tag">data connectors</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>Adding a new RAG data source looks like an integration task.<br>
+With Zotero, it turned out to be a security task.</p>
+<p>I added Zotero as a data source in the RAGFlow RAG pipeline, with connectors in both Python and Go.<br>
+The happy path is simple:<br>
+Pull the PDFs from a user's library.<br>
+Parse them.<br>
+Index them for retrieval.</p>
+<p>Easy feature. The details mattered.</p>
+<p>The connector takes a user-supplied WebDAV URL and an API key, and then makes outbound requests from the server.<br>
+That is a textbook SSRF surface, plus a credential that must never end up at the wrong host.</p>
+<p>The naive version:<br>
+Fetch whatever URL the user typed.<br>
+Send the API key with every request.<br>
+Follow redirects.</p>
+<p>Here is what I did instead:<br>
+→ WebDAV is HTTPS-only, validated locally before any network call<br>
+→ An SSRF check on the resolved address, with DNS pinned so the host can't change between the check and the request<br>
+→ The Zotero API key is sent only to api.zotero.org, and redirects are followed manually without forwarding the key<br>
+→ A cap on file redirects, and oversized attachments are skipped<br>
+→ No default WebDAV URL, so we never claim Zotero hosts WebDAV somewhere it doesn't</p>
+<p>The other problem was scale.<br>
+A research library can be big, and buffering all of it in memory before indexing is a production reliability problem waiting to happen.<br>
+So sync is incremental and batched: PDFs are yielded in the Python connector and downloaded per batch via NextBatch in the Go one.</p>
+<p>What I learned:</p>
+<p>1. A data connector is an outbound-request feature.<br>
+Anything that fetches a user-controlled URL needs SSRF protection from day one.</p>
+<p>2. Checking a hostname is not enough.<br>
+If you resolve it twice, the answer can change. Validate the IP and pin it.</p>
+<p>3. Credentials should be scoped to a host, not to a request.<br>
+Redirects are where API keys quietly leak.</p>
+<p>4. Validate configuration before touching the network.<br>
+Fail fast on bad settings with a clear error.</p>
+<p>5. Stream your sync.<br>
+Batching keeps memory flat no matter how large the source is.</p>
+<p>Good AI engineering isn't only about retrieval quality. Backend engineering means making sure the pipeline feeding your RAG system can't be turned against you.</p>
+<p>An integration isn't done when it syncs. It's done when it fails safely.</p>
+<p>#RAGFlow #AIEngineering #RAG #APISecurity #Python</p>
+<p><a href="https://github.com/infiniflow/ragflow/pull/19742" target="_blank" rel="noopener noreferrer">https://github.com/infiniflow/ragflow/pull/19742</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#10</span> <span class="post-title">Chat-template markup injection</span><span class="post-ref">unslothai/unsloth#7334</span></summary>
+<div class="post-tags"><span class="post-tag">LLM</span><span class="post-tag">prompt injection</span><span class="post-tag">chat templates</span><span class="post-tag">Unsloth</span><span class="post-tag">AI security</span><span class="post-tag">Python</span><span class="post-tag">agents</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>A string in a tool result could forge an assistant turn.<br>
+No exploit. Just text.</p>
+<p>The report that started this, in Unsloth's LLM chat-template handling, was small:<br>
+A literal &lt;/think&gt; in a user message was read as the end of the reasoning block.<br>
+The rest of the model's thought leaked into the visible answer.</p>
+<p>Then I looked closer.<br>
+The same hole meant a tool result containing<br>
+&lt;|start|&gt;assistant&lt;|channel|&gt;final&lt;|message|&gt;<br>
+could open a whole assistant turn that the model never wrote.</p>
+<p>Both were the same bug:<br>
+Text the client controls reaches a chat template as markup instead of as content.</p>
+<p>The fix looked simple. It wasn't.</p>
+<p>The naive fix is to strip &lt;/think&gt;.<br>
+But the problem isn't one token. Every model family has its own control syntax:<br>
+→ ChatML and Harmony style pipe tokens<br>
+→ DeepSeek's fullwidth-bar tokens<br>
+→ Mistral and Llama-2 [INST] brackets<br>
+→ Qwen tool XML, including the tools catalog block<br>
+→ Gemma turn delimiters</p>
+<p>So the fix in Unsloth Studio neutralizes control markup with one small substitution, a space after the opener, so the text stays readable but is no longer a delimiter.</p>
+<p>The harder question was where to apply it.<br>
+Not just the message content. Also:<br>
+→ tool result names<br>
+→ replayed tool call arguments<br>
+→ tool catalogs copied from remote MCP servers<br>
+→ the render paths that bypass the shared template function, including llama-server passthrough and token counting</p>
+<p>There were also trade-offs I wrote down instead of hiding.<br>
+The marker list is closed on purpose, so ordinary text like &lt;div&gt; or [TODO] is untouched.<br>
+Replayed assistant content only gets its turn boundaries broken, because rewriting its own think and tool markup would corrupt the transcript.<br>
+And a tool whose name contains control markup is dropped with a warning, since rewriting a dispatch name would silently break the call.</p>
+<p>For verification, I rendered 12 real upstream templates. A hostile paste forged structure in every one before the fix and in none after, while benign prompts rendered byte-identically.</p>
+<p>What I learned:</p>
+<p>1. Prompt injection isn't only semantic.<br>
+It can be structural. The template is a parser, and the parser trusts its input.</p>
+<p>2. Sanitize at every point where text reaches the template.<br>
+One missed render path is the whole vulnerability.</p>
+<p>3. Don't rewrite identities.<br>
+Fields used for dispatch can't take the same treatment as content.</p>
+<p>4. Test against the real templates, not a model of them.</p>
+<p>5. Write the trade-offs down.<br>
+A closed list with known costs beats a clever regex nobody can reason about.</p>
+<p>If your template can't tell content from control, your user can.</p>
+<p>#Unsloth #AIEngineering #PromptInjection #LLM #AISecurity</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/7334" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7334</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#11</span> <span class="post-title">Canonicalizing web_search arguments</span><span class="post-ref">unslothai/unsloth#9716</span></summary>
+<div class="post-tags"><span class="post-tag">LLM agents</span><span class="post-tag">tool calling</span><span class="post-tag">Unsloth</span><span class="post-tag">local models</span><span class="post-tag">Python</span><span class="post-tag">reliability</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The model called web_search. Nothing was searched.</p>
+<p>In Unsloth's LLM tool calling, small local models fail in quiet ways:<br>
+{"q": "unsloth"} returned "No query provided." without searching.<br>
+{"href": "https://example.com"} never fetched the page.<br>
+{"query": 123} crashed with an 'int' object has no attribute 'strip'.</p>
+<p>Other models say q, search_query, href, uri or link. The tool only understood query and url.</p>
+<p>Worse, in the Approve for me mode a URL fetch is supposed to ask for approval. The check only read url, so the same call with a different key skipped the prompt.</p>
+<p>My first idea was to tell the model the accepted argument names in the tool description.<br>
+I ran an A/B across 5 models, and it wasn't a safe trade:<br>
+it helped some, and hurt others. Llama-3.2-3B dropped from 88/105 correct calls to 75/105, with URL fetches falling from 30/30 to 19/30.<br>
+So I reverted it. The schema the model sees is unchanged.</p>
+<p>Here is what actually worked, on the server side:<br>
+→ Heal known aliases to canonical query and url<br>
+→ Ignore non-string values instead of passing them down<br>
+→ Do it once, in prepare_call, before anything reads the arguments</p>
+<p>Now the status text, the approval gate, the duplicate key and all three tool loops see the same arguments. An href call is gated and fetched.</p>
+<p>The new tests fail on main and pass on the branch.</p>
+<p>Takeaways:<br>
+The model is the unreliable input, so normalize it at the edge.<br>
+Approval and dedup must read the canonical form, or they disagree.<br>
+Prompt changes are not free, so measure them across models.</p>
+<p>How do you handle tool-call argument drift in your agents: heal it server-side, prompt around it, or reject and retry?</p>
+<p>#Unsloth #AIEngineering #ToolCalling #AIAgents #LocalLLM</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/9716" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9716</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#12</span> <span class="post-title">Forced tool_choice on local GGUF</span><span class="post-ref">unslothai/unsloth#9773</span></summary>
+<div class="post-tags"><span class="post-tag">LLM</span><span class="post-tag">tool calling</span><span class="post-tag">llama.cpp</span><span class="post-tag">GGUF</span><span class="post-tag">Unsloth</span><span class="post-tag">agents</span><span class="post-tag">API compatibility</span><span class="post-tag">Python</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>I forced the model to call web_search. It answered from memory instead.</p>
+<p>The request to Unsloth's LLM tool-calling path was explicit:<br>
+tools enabled, web_search selected, tool_choice forced.<br>
+On a local GGUF model, no tool ran.<br>
+Leave the selection out and web_search worked fine.</p>
+<p>My first suspicion was the hosted-tool logic that decides which tools stay local.<br>
+It was the wrong place.<br>
+A loaded GGUF has no provider type, and the local catalog already kept web_search.</p>
+<p>The real cause was one line.<br>
+The agentic loop hardcoded tool_choice to "auto".<br>
+So the forced choice never reached llama-server. The client asked for one thing, and the backend quietly sent another.</p>
+<p>I expected a quick patch. The details mattered.</p>
+<p>Just forwarding the value would introduce a new bug.<br>
+If you force a tool on every turn, the model can never stop calling it and answer in prose.</p>
+<p>So the design is:<br>
+→ Forward tool_choice through both the OpenAI chat and Anthropic routes<br>
+→ Honour a forced function on the first turn<br>
+→ After a tool actually runs, drop back to "auto" so the model can answer<br>
+→ Validate that the forced tool is actually enabled<br>
+→ Honour "none" as a real value</p>
+<p>Hosted providers keep their behavior: web_search without run_tools_locally stays hosted.</p>
+<p>I added tests for the forced-then-auto sequence at the llama-server payload level, for the issue-shaped request entering the GGUF loop with the forced choice, and for the hosted-versus-local discriminator.</p>
+<p>What I learned:</p>
+<p>1. A hardcoded default is a silent override.<br>
+If a user-facing parameter exists, trace it all the way to the wire.</p>
+<p>2. Don't trust the first suspect.<br>
+I looked in the routing logic. The bug was in the loop.</p>
+<p>3. Forcing is per-turn, not per-request.<br>
+A forced tool call is an opening move, not a standing order.</p>
+<p>4. Test the outgoing payload.<br>
+The assertion that matters is what llama-server actually received.</p>
+<p>5. Keep API parity.<br>
+OpenAI-style and Anthropic-style routes should behave the same for the same intent.</p>
+<p>An option that's accepted but never forwarded is worse than one that's rejected.</p>
+<p>#Unsloth #AIEngineering #ToolCalling #LLM #llamacpp</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/9773" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9773</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#13</span> <span class="post-title">max_completion_tokens retry for custom gateways</span><span class="post-ref">unslothai/unsloth#10837</span></summary>
+<div class="post-tags"><span class="post-tag">LLM</span><span class="post-tag">OpenAI-compatible API</span><span class="post-tag">Azure OpenAI</span><span class="post-tag">API compatibility</span><span class="post-tag">streaming</span><span class="post-tag">Python</span><span class="post-tag">Unsloth</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>Every request failed with the same error:<br>
+Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead.</p>
+<p>The setup: Unsloth Studio pointed at a custom OpenAI-compatible LLM API gateway in front of Azure-hosted gpt-5.x and o-series models.<br>
+Unsloth Studio sent max_tokens.<br>
+The gateway wanted max_completion_tokens.</p>
+<p>The reason was simple.<br>
+Only the real openai provider type sent max_completion_tokens.<br>
+Everything else got max_tokens.</p>
+<p>The obvious patch had a catch.</p>
+<p>The naive fix: send max_completion_tokens for custom providers too.<br>
+That breaks the other side.<br>
+vLLM, llama.cpp and many other servers only know max_tokens.<br>
+"OpenAI-compatible" is a spectrum, and I can't tell where a gateway sits on it from its URL.</p>
+<p>So I made the client learn from the server instead:<br>
+→ The first request is unchanged, so servers that only know max_tokens see no difference<br>
+→ If the upstream answers 400 and the error actually names max_tokens, resend once with max_completion_tokens<br>
+→ Match on the structured error first (param and code), with a substring fallback for non-JSON bodies<br>
+→ Any other 400 surfaces exactly as before, and a failing retry does too</p>
+<p>Streaming was the tricky part.<br>
+The retry has to happen before any bytes reach the client.<br>
+The status check runs before anything is yielded, so the retry is invisible, and the stream body itself is untouched.</p>
+<p>For tests, I drove the real client against a loopback HTTP server: stream and non-stream retry on the wire, an unrelated 400 is not retried, plus the error-matching cases. The two wire tests fail with the call sites reverted.</p>
+<p>What I learned:</p>
+<p>1. Compatibility is negotiated, not assumed.<br>
+When you can't know the dialect up front, let the server tell you.</p>
+<p>2. Keep the common path byte-identical.<br>
+Retry logic should only exist on the failure path.</p>
+<p>3. Retry narrowly.<br>
+One retry, only on a specific error, only for a specific parameter.</p>
+<p>4. Streaming changes where you can recover.<br>
+Retry before the first yield, or you can't hide it.</p>
+<p>5. Test over real HTTP.<br>
+Mocking the client would never have proven the wire behavior.</p>
+<p>The best compatibility layer is one the user never notices.</p>
+<p>#Unsloth #AIEngineering #LLM #OpenAI #AzureOpenAI</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/10837" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10837</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#14</span> <span class="post-title">Wiki pages never retrieved</span><span class="post-ref">infiniflow/ragflow#18787</span></summary>
+<div class="post-tags"><span class="post-tag">RAG</span><span class="post-tag">RAGFlow</span><span class="post-tag">knowledge compilation</span><span class="post-tag">retrieval</span><span class="post-tag">Python</span><span class="post-tag">open source</span><span class="post-tag">AI engineering</span></div>
+<div class="post-body">
+<p>The wiki pages were in the index. They showed up in the UI. They never came back as RAG context.</p>
+<p>The gap was in the RAG pipeline of RAGFlow, in its Knowledge Compilation feature.</p>
+<p>Compiled wiki pages were browsable in Artifacts.<br>
+But when I queried the knowledge base, retrieval acted like they didn't exist.</p>
+<p>Nothing crashed.<br>
+No error.<br>
+Just silent misses.</p>
+<p>The graph rows from the same pipeline (wiki_entity, wiki_relation) were retrievable.<br>
+The pages weren't.</p>
+<p>That difference was the clue.</p>
+<p>The retriever always filters on available_int=1.<br>
+The incremental wiki persist path wrote pages and canonical entities without available_int, without doc_id, and without content_with_weight.</p>
+<p>So the data was there, but every retrieval gate excluded it.</p>
+<p>Quick fix. Just stamp the fields.<br>
+It wasn't that simple.</p>
+<p>There was a second gate: _prune_deleted_chunks.<br>
+It drops hits whose parent document no longer exists.<br>
+Wiki pages use the KB id as a sentinel doc_id, or have none at all, so once source-document chunks were in the same result set, the pages got pruned as "orphans".</p>
+<p>And the naive fix there is also wrong.<br>
+"Keep everything with a missing doc_id" would let stale chunks from deleted documents back in.</p>
+<p>So the final design:<br>
+→ persist stamps available_int=1, doc_id=kb_id and content_with_weight on pages and canonical entities<br>
+→ FINALIZE backfills those fields on re-run, so existing pages become retrievable without a full rewrite<br>
+→ pruning keeps KB-scoped rows (doc_id equals the KB id, or an explicit compilation marker)<br>
+→ rows from a deleted source document are still dropped</p>
+<p>I added regression tests for pages mixed with live and deleted source chunks, pages that omit doc_id, and the FINALIZE backfill.</p>
+<p>What I learned:</p>
+<p>1. "Visible" and "retrievable" are different properties.<br>
+If the UI reads one path and the retriever reads another, a feature can look finished while doing nothing for the LLM.</p>
+<p>2. Retrieval filters are part of your schema contract.<br>
+Every field a filter touches has to be written by every producer, not just the first one you built.</p>
+<p>3. Compare the rows that work with the rows that don't.<br>
+Graph rows stamped the fields. Pages didn't. That diff pointed straight at the cause.</p>
+<p>4. Cleanup logic needs an explicit scope.<br>
+"Missing parent means stale" is only true if you define which rows have a parent in the first place.</p>
+<p>5. Ship the backfill with the fix.<br>
+Fixing future writes does nothing for data that's already in the index.</p>
+<p>A RAG system doesn't fail when retrieval returns the wrong thing. Sometimes it fails by quietly never returning the right one.</p>
+<p>#RAGFlow #AIEngineering #RAG #LLM #Python</p>
+<p><a href="https://github.com/infiniflow/ragflow/pull/18787" target="_blank" rel="noopener noreferrer">https://github.com/infiniflow/ragflow/pull/18787</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#15</span> <span class="post-title">Credential guard hangs the terminal tool</span><span class="post-ref">unslothai/unsloth#12087</span></summary>
+<div class="post-tags"><span class="post-tag">LLM agents</span><span class="post-tag">tool calling</span><span class="post-tag">security</span><span class="post-tag">Python</span><span class="post-tag">Unsloth Studio</span><span class="post-tag">production reliability</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The terminal tool call never returned. It just stayed on "Running" past the max duration.</p>
+<p>This was in Unsloth Studio's LLM agent tool calling, and the cause wasn't the shell command.<br>
+It was the safety check in front of it.</p>
+<p>The setup: before an LLM-issued command runs, a guard scans it for references to Studio's credential files.<br>
+To catch tricks like d=../..; cat "$d/auth.db", the guard expands shell assignments first.</p>
+<p>Then someone runs something harmless:</p>
+<p>echo "A=$A B=$B"</p>
+<p>The assignment A=$A B=$B refers to itself.<br>
+The expansion fed its output back into itself.<br>
+It recursed without bound.</p>
+<p>And it ran synchronously on the backend event loop, holding the GIL.<br>
+So no tool result was logged, no completion reached the UI, and the whole server was stuck behind a log message.</p>
+<p>Easy fix. Add a recursion limit.<br>
+Except it wasn't.</p>
+<p>A flat limit alone creates a different problem:<br>
+→ too low, and legitimate long alias chains get refused<br>
+→ too high, and you still burn CPU on the event loop<br>
+→ and if hitting the limit means "allow", you've built a bypass</p>
+<p>So the fix has three parts:<br>
+→ resolve a self-reference against the earlier binding (or empty) instead of expanding it into itself<br>
+→ bound the depth and the growth of the expanded text, while still allowing long finite chains<br>
+→ when the budget runs out, fail closed and refuse the command</p>
+<p>I also made the guard scan assignment-like text inside quotes separately, so a log message shaped like an assignment can't overwrite a real binding, while real quoted shell programs are still inspected.</p>
+<p>Regression tests cover quoted self-references, long credential and harmless alias chains, scan exhaustion, and growing unresolved assignments.</p>
+<p>What I learned:</p>
+<p>1. Security checks are code on your hot path.<br>
+A guard that can hang is an availability bug, and in an agent loop that means every tool call stalls.</p>
+<p>2. Interpreters need budgets.<br>
+Any time you expand, resolve or evaluate user-influenced input, put a hard bound on depth and size.</p>
+<p>3. Fail closed when the budget is exhausted.<br>
+If the guard can't finish its analysis, it can't claim the command is safe.</p>
+<p>4. Don't let blocking work sit on the event loop.<br>
+One synchronous scan can freeze every other request.</p>
+<p>5. Self-reference is a normal input.<br>
+A=$A isn't clever, it's just shell. Treat it as a case to resolve, not a case to hope doesn't happen.</p>
+<p>A safety check that can hang is not a safety check. It's an outage with extra steps.</p>
+<p>#Unsloth #AIEngineering #AIAgents #LLM #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/12087" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/12087</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#16</span> <span class="post-title">Three endpoints, three answers</span><span class="post-ref">unslothai/unsloth#7375</span></summary>
+<div class="post-tags"><span class="post-tag">Hugging Face</span><span class="post-tag">GGUF</span><span class="post-tag">model cache</span><span class="post-tag">Unsloth Studio</span><span class="post-tag">Python</span><span class="post-tag">TypeScript</span><span class="post-tag">debugging</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The model was on disk. The model picker listed it. Auto-load said nothing was downloaded, then downloaded a different model instead.</p>
+<p>A user report against Unsloth Studio's model loading backend got me started, with a Gemma-4 GGUF in the normal Hugging Face cache.</p>
+<p>First I asked three endpoints the same question:</p>
+<p>→ /api/hub/cached-gguf: 0 repos<br>
+→ /api/models/local: model present, chattable<br>
+→ /api/hub/gguf-variants: variant present, downloaded</p>
+<p>That disagreement was the actual bug report.</p>
+<p>My first theory, that the sweep couldn't see a custom folder, was wrong. Reproducing the user's layout disproved it, so I rewrote the PR around what I measured.</p>
+<p>/api/hub/cached-gguf uses huggingface_hub's scan_cache_dir. The picker walks the directories directly. scan_cache_dir raises CorruptedCacheException for a repo whose refs/&lt;branch&gt; points at a commit with no snapshot directory, drops that repo, and only reports it in warnings. So the endpoint returned a clean 200 with an empty list.</p>
+<p>Studio can create this state itself: a metadata probe that 404s can write refs/main at the live upstream HEAD without materialising that snapshot.</p>
+<p>The fix came in two pieces:<br>
+→ prune only refs whose commit has no snapshot on disk, then rescan once, and only when the scan warned<br>
+→ stop the auto-load sweep from falling through to a Hub download after a load failed, and surface the model name and the backend's reason</p>
+<p>Every catch had been parameterless, so the real error was discarded and the user got a success toast for a model they never asked for.</p>
+<p>Tests cover the dangling ref, a healthy cache that must not be touched, an in-flight download, and a read-only refs directory.</p>
+<p>1. When two views of the same data disagree, query both.</p>
+<p>2. Tools that skip bad entries must say so loudly.</p>
+<p>3. Throw away your first theory when the repro disagrees.</p>
+<p>When three endpoints disagree, the bug usually lives in the one that fails quietly.</p>
+<p>#Unsloth #AIEngineering #HuggingFace #LLM #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/7375" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7375</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#17</span> <span class="post-title">Session not found after webhook disconnect</span><span class="post-ref">langgenius/dify-plugin-daemon#820</span></summary>
+<div class="post-tags"><span class="post-tag">Go</span><span class="post-tag">Dify</span><span class="post-tag">plugin daemon</span><span class="post-tag">context cancellation</span><span class="post-tag">webhooks</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The workflow succeeded in Dify. The plugin still got "session not found".</p>
+<p>This one came from Dify's plugin daemon, the Go plugin runtime behind it, and it only showed up with a certain kind of client.</p>
+<p>Endpoint plugins, like a WeChat Work bot, receive webhooks with short callback timeouts.<br>
+The client gives up and disconnects while the plugin is still doing a backwards invocation, such as session.app.chat.invoke.</p>
+<p>The invocation was fine.<br>
+The plumbing underneath it wasn't.</p>
+<p>Two things happened on disconnect:<br>
+→ the HTTP request context was cancelled, and a context.AfterFunc closed the plugin invocation stream, which removed the session from the session map<br>
+→ the handler returned immediately on CloseNotify(), closing the response stream before the plugin finished</p>
+<p>So the plugin tried to call back into Dify, and the session it was calling through was already gone.</p>
+<p>The obvious fix. Ignore the disconnect.<br>
+The details mattered.</p>
+<p>If you simply ignore cancellation, you've created a session that can live forever.<br>
+And the request context also carries trace metadata I didn't want to lose.</p>
+<p>So the design is:<br>
+→ build the session context with context.WithoutCancel, which keeps the trace values but detaches from the client's cancellation<br>
+→ wrap it in context.WithTimeout using maxExecutionTime, so the session still has a hard upper bound<br>
+→ on client disconnect, wait for the handler to finish or for maxExecutionTime before tearing down the stream</p>
+<p>I added unit tests that cancel the HTTP context and check the session context survives, and that the session context still times out at its deadline.</p>
+<p>What I learned:</p>
+<p>1. The client's lifetime isn't the work's lifetime.<br>
+If the work has side effects beyond the HTTP response, don't tie it to the connection.</p>
+<p>2. Detach cancellation, not values.<br>
+context.WithoutCancel keeps tracing and request metadata while removing the cancel signal.</p>
+<p>3. Every detached context needs its own deadline.<br>
+Removing one bound means adding another, or you've introduced a leak.</p>
+<p>4. Cleanup hooks fire on the path you didn't plan for.<br>
+An AfterFunc that tears down state is only correct if cancellation always means "we're done".</p>
+<p>5. Short-timeout callers are normal.<br>
+Messaging platforms often disconnect long before an LLM-backed workflow finishes. Design for it.</p>
+<p>A disconnected client is a normal event. Your session shouldn't treat it as a shutdown.</p>
+<p>#Dify #BackendEngineering #Golang #LLM #ProductionReliability</p>
+<p><a href="https://github.com/langgenius/dify-plugin-daemon/pull/820" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify-plugin-daemon/pull/820</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#18</span> <span class="post-title">Upgrade deleted the working install</span><span class="post-ref">langgenius/dify-plugin-daemon#831</span></summary>
+<div class="post-tags"><span class="post-tag">Go</span><span class="post-tag">Dify</span><span class="post-tag">plugin daemon</span><span class="post-tag">serverless</span><span class="post-tag">upgrade safety</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>A plugin upgrade could remove the version that was working, and replace it with one that never started.</p>
+<p>Looking at a serverless upgrade failure in the Go backend of Dify's plugin daemon, I found a shortcut. If the new version's package had already been uploaded, UpgradePlugin took a synchronous route:<br>
+→ update the tenant installation records<br>
+→ possibly delete the previous version<br>
+→ return success</p>
+<p>What it did not do was make sure the serverless runtime for the new version existed.</p>
+<p>So if Lambda creation failed, say because the container image tag wasn't there yet, the database had already moved on. The user's working install could disappear from the UI while the new runner never came up.</p>
+<p>The failure wasn't in the runtime launch. It was in the order of operations. ProcessUpgradeJob launches or verifies the runtime first, and only then calls curd.UpgradePlugin.</p>
+<p>So I removed the shortcut. The upgrade always goes through the job, and when the package is already uploaded I still fetch its declaration and pass it in.</p>
+<p>The result is a single rule: verify the new thing works before you mutate the state that points at the old thing.</p>
+<p>To be precise, this doesn't fix why the image was missing in the first place. That's a separate build pipeline concern. What it fixes is the damage: a failed launch no longer takes a working install with it.</p>
+<p>Three lessons:</p>
+<p>1. Fast paths are where invariants go to die.<br>
+2. Verify first, commit second.<br>
+3. Delete a code path before you patch it.</p>
+<p>An upgrade that can't roll back shouldn't commit before it knows it worked.</p>
+<p>#Dify #BackendEngineering #Golang #Serverless #ProductionReliability</p>
+<p><a href="https://github.com/langgenius/dify-plugin-daemon/pull/831" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify-plugin-daemon/pull/831</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#19</span> <span class="post-title">Live dataset preview mid-run</span><span class="post-ref">unslothai/unsloth#10737</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">synthetic data generation</span><span class="post-tag">DuckDB</span><span class="post-tag">Parquet</span><span class="post-tag">Windows file locking</span><span class="post-tag">Python backend</span><span class="post-tag">TypeScript</span><span class="post-tag">LLM data pipelines</span></div>
+<div class="post-body">
+<p>The data tab said "Generating data..." for the entire run.<br>
+The rows were already on disk.</p>
+<p>I hit this in the Unsloth Studio backend, while working on its data recipe runs for synthetic LLM data generation.<br>
+A full run with batching writes parquet shards as each batch finishes.<br>
+But the UI had nothing to show until the whole job was done.<br>
+On a big run, that means staring at an empty state with no idea if your recipe is producing good data.<br>
+Against main, the dataset endpoint returned 404 mid-run.<br>
+On my branch, with a 2M-row run at batch size 1000, it returned 40,000 rows while the job was still going.</p>
+<p>Simple fix. Just read the partial parquet files.<br>
+That fix would have created a new problem.</p>
+<p>The backend didn't know where the output was going until the run finished.<br>
+And reading files that a worker is still writing is a different problem from reading finished files.</p>
+<p>So the design had a few parts:<br>
+→ The backend publishes the planned artifact path when the job starts, so polling knows where to look<br>
+→ The frontend refreshes the data tab on a short interval while a run is active<br>
+→ Pagination stays disabled during an in-progress full run and comes back after completion<br>
+→ Pages are read with DuckDB, not a naive load of everything</p>
+<p>Two details mattered most.</p>
+<p>First, Windows.<br>
+DuckDB opens files with FILE_SHARE_DELETE.<br>
+The pyarrow fallback doesn't, and it would block the worker's merge step when it tries to remove the shard directory.<br>
+A preview feature that makes the real job fail is worse than no preview.</p>
+<p>Second, cost.<br>
+Instead of scanning everything for each poll, I take row counts from the parquet footers, then scan only the shards the requested page actually covers.<br>
+I also added tests that check paged reads match shards read in order.</p>
+<p>What I took away:</p>
+<p>1. A progress UI is part of the data pipeline.<br>
+If users can't see partial output, they can't catch a bad recipe until it has already burned the whole run.</p>
+<p>2. Readers must not interfere with writers.<br>
+File sharing semantics on Windows can turn a harmless read into a failed merge.</p>
+<p>3. Metadata is cheaper than data.<br>
+Parquet footers already know the row counts. Use them.</p>
+<p>4. Publish intent early.<br>
+The planned artifact path at job start is what made polling possible at all.</p>
+<p>5. Disable what you can't make correct yet.<br>
+Pagination during an in-progress run stays off until it's stable.</p>
+<p>A live preview is only a feature if it never gets in the way of the job it's previewing.</p>
+<p>#Unsloth #BackendEngineering #LLM #Python #DuckDB<br>
+<a href="https://github.com/unslothai/unsloth/pull/10737" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10737</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#20</span> <span class="post-title">Prometheus metrics for plugin invocations</span><span class="post-ref">langgenius/dify-plugin-daemon#821</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">plugin daemon</span><span class="post-tag">Prometheus</span><span class="post-tag">observability</span><span class="post-tag">Go</span><span class="post-tag">backend engineering</span><span class="post-tag">production reliability</span><span class="post-tag">LLM agents</span></div>
+<div class="post-body">
+<p>Our plugin daemon could tell you a plugin was called.<br>
+It couldn't tell you how many were stuck right now.</p>
+<p>I picked up an observability request for the Dify plugin daemon, the Go backend runtime for Dify's AI agent plugins.<br>
+It already served Prometheus at /metrics when enabled.<br>
+But if you were running agents and LLM tools in production, you still couldn't answer basic questions:<br>
+→ How many invocations are in flight per plugin?<br>
+→ How long do they take, and how did they end?<br>
+→ What class of error is it?<br>
+→ How many processes is each plugin running?</p>
+<p>So I added four metrics around the main SSE invoke path:<br>
+→ an in-flight gauge per plugin<br>
+→ a duration histogram labelled by plugin and outcome (success, error, timeout, client_disconnect, session_error)<br>
+→ an error counter labelled by error class (plugin_error, timeout, canceled, daemon_error, other)<br>
+→ a per-plugin process gauge driven by runtime scale up and down</p>
+<p>I also registered GET /metrics next to /metrics/ because many scrape configs expect the standard path.</p>
+<p>Easy part: increment a counter.<br>
+Hard part: make sure every exit path decrements the gauge, and that outcome labels mean something.</p>
+<p>A client disconnect is not a plugin failure.<br>
+A timeout is not a daemon bug.<br>
+If you lump them into one error bucket, your dashboards lie.</p>
+<p>Then there was a Go-specific trap.<br>
+The scale callbacks receive a runtime through an interface.<br>
+A nil pointer stored in an interface is not == nil.<br>
+So a typed-nil runtime would slip past a plain nil check and panic when I tried to read its plugin ID.<br>
+I added a guard that uses reflection to catch nil pointers, maps, slices and friends inside the interface before touching them.</p>
+<p>I added tests for the in-flight lifecycle and for the mapping from outcome to error class.</p>
+<p>What I learned:</p>
+<p>1. Metrics are an API.<br>
+Label names and values are a contract your alerts depend on. Choose them deliberately.</p>
+<p>2. Separate outcome from error class.<br>
+Duration needs to know how a call ended. Error budgets need to know why it failed.</p>
+<p>3. Gauges leak if any path forgets to decrement.<br>
+Test the lifecycle, not just the happy path.</p>
+<p>4. Typed nil in Go interfaces is real.<br>
+Observability code runs on every request. It must never be the thing that crashes the daemon.</p>
+<p>5. Match conventions.<br>
+Supporting the standard /metrics route saves everyone a config change.</p>
+<p>You can't operate what you can't see, and you can't trust what you see if the labels are wrong.</p>
+<p>#Dify #BackendEngineering #Golang #Prometheus #Observability<br>
+<a href="https://github.com/langgenius/dify-plugin-daemon/pull/821" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify-plugin-daemon/pull/821</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#21</span> <span class="post-title">Hidden reasoning prompt in vision fine-tunes</span><span class="post-ref">unslothai/unsloth-zoo#1072</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth</span><span class="post-tag">fine-tuning</span><span class="post-tag">Qwen</span><span class="post-tag">vision language models</span><span class="post-tag">chat templates</span><span class="post-tag">LLM training data</span><span class="post-tag">Python</span><span class="post-tag">AI engineering</span></div>
+<div class="post-body">
+<p>My vision fine-tune had a system prompt I never wrote.<br>
+"Reasoning effort is set to xhigh. Please think carefully..."</p>
+<p>This came up while fine-tuning Qwen3.8 vision models with Unsloth Zoo, an LLM fine-tuning library.<br>
+The chat template adds that system prompt by default.<br>
+The only way to turn it off is to pass enable_thinking=False to apply_chat_template.</p>
+<p>The text path already handled this.<br>
+It merged per-row chat_template_kwargs from the dataset.</p>
+<p>But UnslothVisionDataCollator called apply_chat_template with no kwargs at all.<br>
+So for vision and audio fine-tunes there was no way to turn it off.<br>
+Every training example carried that injected prompt, in both the input_ids and the labels.<br>
+Nothing crashed. The loss went down. The model just trained on text I never intended.</p>
+<p>Quick fix. Add a flag.<br>
+Not quite.</p>
+<p>The collator renders through two different layouts: a messages path and a prompt/completion path.<br>
+If I patched only one, the other would keep silently training on the old behavior.</p>
+<p>So the fix:<br>
+→ a new optional chat_template_kwargs argument on the collator<br>
+→ per-row kwargs from the dataset override the collator's, matching the text path<br>
+→ both layouts render through one shared helper<br>
+→ with no kwargs, the template call is identical to before, so default behavior is unchanged</p>
+<p>For verification, I wrote tests that drive the collator on both layouts.<br>
+The default sends no template kwargs.<br>
+Collator and row enable_thinking=False reach every template call, and row values win.<br>
+The 6 forwarding tests fail on main.<br>
+I also ran the real Qwen3.8 chat template on a tiny Qwen2.5-VL processor and confirmed the reasoning prompt disappears from input_ids and labels.<br>
+The existing vision collator suites still pass: 166 passed, 6 skipped.</p>
+<p>What I learned:</p>
+<p>1. Your training data is whatever the template renders.<br>
+Not what your dataset says.</p>
+<p>2. Parity between code paths is a feature.<br>
+If text can do something, vision and audio should too.</p>
+<p>3. Route duplicated logic through one helper.<br>
+Two rendering paths means two places to forget a fix.</p>
+<p>4. Defaults must stay boring.<br>
+No kwargs should mean the exact same call as before.</p>
+<p>5. Decode and inspect the final tokens.<br>
+That is where a hidden prompt shows up.</p>
+<p>The most dangerous prompt in your fine-tune is the one the template adds for you.</p>
+<p>#Unsloth #AIEngineering #LLM #FineTuning #Python<br>
+<a href="https://github.com/unslothai/unsloth-zoo/pull/1072" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth-zoo/pull/1072</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#22</span> <span class="post-title">Mistyped GGUF ids answered by the wrong model</span><span class="post-ref">unslothai/unsloth#8389</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">OpenAI-compatible API</span><span class="post-tag">GGUF</span><span class="post-tag">API design</span><span class="post-tag">error handling</span><span class="post-tag">Python</span><span class="post-tag">FastAPI</span><span class="post-tag">LLM serving</span></div>
+<div class="post-body">
+<p>I sent an image to a vision model that didn't exist.<br>
+Unsloth Studio's API server said the loaded model doesn't support vision.</p>
+<p>That's the bug I fixed in Unsloth Studio's OpenAI-compatible /v1 API, the LLM serving backend.</p>
+<p>A client called /v1/chat/completions with a mistyped vision model id.<br>
+The server didn't say "I don't have that model".<br>
+It quietly sent the request to whatever model happened to be loaded.<br>
+That model was a text model, so the client got "Image provided but current GGUF model does not support vision".<br>
+A real error message, pointing at the wrong problem.</p>
+<p>The cause was in how the server decided to refuse a model name.<br>
+It only rejected explicit quant references like :Q4_K_M, or ids it already knew locally.<br>
+A bare hub-style id such as unsloth/typo-vision-GGUF that wasn't downloaded and wasn't in the catalog fell through to the drop-in compatibility path.</p>
+<p>The obvious fix. Reject every unknown model.<br>
+That would have been the wrong fix.</p>
+<p>Plenty of clients send labels like openai/gpt-4o or anthropic/claude-3.5-sonnet and just expect the loaded model to answer.<br>
+Breaking that would break the drop-in promise.</p>
+<p>So I drew a narrower line.<br>
+I added a helper that detects ids that clearly point at this server's GGUF catalog:<br>
+→ repo names ending in -GGUF<br>
+→ anything under the unsloth/ namespace</p>
+<p>Those are treated as concrete references.<br>
+If they don't match the loaded model, the API returns 404 with model_not_found.</p>
+<p>Everything else keeps the old behavior:<br>
+→ foreign provider labels still fall through to the loaded model<br>
+→ an org/Unlisted id that isn't in the catalog still falls through</p>
+<p>I added unit tests for the helper and the reject path, plus an integration test for the exact case: image plus mistyped id returns 404 before the vision guard.</p>
+<p>What I took away:</p>
+<p>1. Silent fallback is a design decision.<br>
+If you route to a default, you are choosing to hide mistakes.</p>
+<p>2. Wrong errors are worse than no errors.<br>
+A misleading vision error sent the debugging in the wrong direction.</p>
+<p>3. Compatibility needs a boundary.<br>
+Be explicit about which ids you own and which you pass through.</p>
+<p>4. Fail fast when the intent is clear.<br>
+A name that targets your catalog is a request for that model.</p>
+<p>5. Test the negative cases too.<br>
+The passthrough cases deserve regression tests as much as the new 404.</p>
+<p>An API that answers with the wrong model is lying. A 404 is honest.</p>
+<p>#Unsloth #LLM #BackendEngineering #Python #APIDesign<br>
+<a href="https://github.com/unslothai/unsloth/pull/8389" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/8389</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#23</span> <span class="post-title">Validate before you destroy</span><span class="post-ref">unslothai/unsloth#7415</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">llama.cpp</span><span class="post-tag">GGUF</span><span class="post-tag">Vulkan</span><span class="post-tag">DiffusionGemma</span><span class="post-tag">error handling</span><span class="post-tag">Python</span><span class="post-tag">production reliability</span></div>
+<div class="post-body">
+<p>The request was rejected with a 400.<br>
+But the model that was running was already gone.</p>
+<p>This small ordering bug in Unsloth Studio's llama.cpp backend has a big blast radius.</p>
+<p>If you load a DiffusionGemma GGUF with explicit gpu_ids on a Vulkan build, that combination isn't supported.<br>
+The diffusion runner picks its device by CUDA physical index, and that has no defined mapping to Vulkan device ordinals.<br>
+So rejecting it is correct.</p>
+<p>The problem was when it was rejected.</p>
+<p>load_model ran Phase 1 first, which calls _kill_process() and stops the active server.<br>
+Only after that did it read the GGUF header and discover the model was a diffusion model.<br>
+Then it returned the 400.</p>
+<p>So a request that was always going to fail still tore down the healthy model.<br>
+The user got an error and an empty server.</p>
+<p>Simple fix. Move the check.<br>
+The obvious fix had a catch.</p>
+<p>You can't classify a GGUF without reading its header.<br>
+And the header isn't always on disk.</p>
+<p>So I handled each source:<br>
+→ Local gguf_path: read the header with the existing diffusion check before killing the server<br>
+→ Hugging Face repo: try a cached local GGUF first, and download only when it isn't cached, which was the existing behavior<br>
+→ One shared error message and one helper, so the pre-teardown and later rejections can't drift apart</p>
+<p>The old post-metadata check stays as a last line of defense.</p>
+<p>I added tests that assert the local preflight sits before the teardown step, and that a rejection leaves the active server running.<br>
+The existing remote diffusion preflight tests still pass.</p>
+<p>What I learned:</p>
+<p>1. Validate before you destroy.<br>
+Every irreversible step should come after every check that can fail.</p>
+<p>2. A failed request shouldn't have side effects.<br>
+Rejection should be free.</p>
+<p>3. Ordering bugs hide in happy-path code.<br>
+Each step looked fine. The sequence was wrong.</p>
+<p>4. Keep one source of truth for errors.<br>
+Shared messages stop the same rule from being described three ways.</p>
+<p>5. Keep the safety net.<br>
+Early checks are for the common case, late checks are for the rest.</p>
+<p>If a request is going to fail, it should fail before it breaks anything.</p>
+<p>#Unsloth #BackendEngineering #llamacpp #LLM #Python<br>
+<a href="https://github.com/unslothai/unsloth/pull/7415" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7415</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#24</span> <span class="post-title">Resume button vanished after Stop and Save</span><span class="post-ref">unslothai/unsloth#8217</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">LLM fine-tuning</span><span class="post-tag">Python</span><span class="post-tag">backend engineering</span><span class="post-tag">resume training</span><span class="post-tag">provenance</span><span class="post-tag">regression testing</span></div>
+<div class="post-body">
+<p>The training run was saved. The checkpoint was intact. The Resume button simply wasn't there.</p>
+<p>This one is from Unsloth Studio's LLM fine-tuning workflow, while I was working on fine-tuning runs for Hub models.</p>
+<p>The sequence was simple:<br>
+Start a run.<br>
+Hit Stop and Save early.<br>
+Come back to resume.<br>
+No button.</p>
+<p>The checkpoint wasn't the problem.<br>
+The problem was a status marker.</p>
+<p>When a run starts, Studio writes an initial resource-provenance marker:<br>
+status: pending</p>
+<p>The worker later attests which model and dataset revisions it actually loaded.<br>
+But if you stop before that happens, the marker stays pending.</p>
+<p>And the resume check read "pending" as "model revision not attested."<br>
+So it blocked resume, both in the UI and at resume start.</p>
+<p>Not a one-line fix, it turned out.</p>
+<p>The naive fix was: treat pending as fine and let everything resume.</p>
+<p>That would quietly weaken a real safety check. Resume exists to avoid silently continuing a run against resources that changed underneath it.</p>
+<p>So the question became:<br>
+Is this run pending because it hasn't been attested yet, or because something is wrong?</p>
+<p>The fix adds a small predicate, _provenance_awaiting_attestation(), that only matches the initial state:<br>
+→ status is pending<br>
+→ no model or dataset attestation status yet<br>
+→ no snapshot paths recorded</p>
+<p>Those runs resume like legacy runs without exact resource pins.</p>
+<p>Everything else stays blocked:<br>
+→ unattested snapshot paths<br>
+→ incomplete provenance<br>
+→ malformed markers</p>
+<p>I added regression tests for the Stop-and-Save case, for the resume-start path, and for the case where untrusted snapshot paths must still be rejected. The resume and provenance suites passed.</p>
+<p>What I learned:</p>
+<p>1. A default state is not an error state.<br>
+"Not yet written" and "failed to verify" can look identical in a status field. They mean very different things.</p>
+<p>2. Safety checks need to know which state they are looking at.<br>
+Loosening a guard everywhere is the lazy fix. Narrowing the exact condition is the correct one.</p>
+<p>3. Test the boundary, not just the bug.<br>
+The regression test proves the button comes back. The negative test proves the guard still works.</p>
+<p>4. User-visible bugs often live in backend state machines.<br>
+The UI was correct. It was faithfully showing a wrong answer from the backend.</p>
+<p>A guard that blocks the happy path by accident isn't safety. It's a bug wearing a safety badge.</p>
+<p>#Unsloth #AIEngineering #FineTuning #LLM #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/8217" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/8217</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#25</span> <span class="post-title">Deep Research asked for more tokens than the context could hold</span><span class="post-ref">unslothai/unsloth#7985</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">Deep Research</span><span class="post-tag">LLM</span><span class="post-tag">context window</span><span class="post-tag">max_tokens</span><span class="post-tag">finish_reason</span><span class="post-tag">Python</span><span class="post-tag">AI agents</span></div>
+<div class="post-body">
+<p>The model didn't hit an output cap. The error message said it did.</p>
+<p>This is from Unsloth Studio's Deep Research feature, an LLM research workflow running against a local model.</p>
+<p>The symptom:<br>
+The synthesis step failed with finish_reason: length.<br>
+The worker reported that the report reached its output limit.</p>
+<p>But there was no output limit being hit.</p>
+<p>What was actually happening:<br>
+Deep Research clamped max_tokens against fixed ceilings, 8k for normal calls and 16k for synthesis.<br>
+Meanwhile the loaded model had a context of 12288 tokens.</p>
+<p>So synthesis could ask for 16384 completion tokens on a 12288-token context.<br>
+Before generating a single word, the request was already bigger than the whole window.</p>
+<p>The server truncated at the context wall and returned finish_reason: length.<br>
+And the worker blamed an output cap that never existed.</p>
+<p>The funny part:<br>
+The code already knew the context length. It used it to size evidence and gate auto-scrape.<br>
+It just never used it for the completion budget.</p>
+<p>A quick patch would have been the wrong fix.</p>
+<p>Clamping to context is not enough. The prompt also takes space.</p>
+<p>So the fix does two things:<br>
+→ max_tokens is clamped to context length minus the estimated prompt tokens, using the same chars-per-token heuristic synthesis already used for evidence budgeting<br>
+→ the stream now captures usage, so a length failure can be classified</p>
+<p>Then the error message tells the truth:<br>
+→ context exhausted: tell the user to raise Context Length or reduce evidence<br>
+→ true output cap: say so</p>
+<p>I added tests for the context clamping, the usage shape from a live probe, and the updated error message. The Deep Research hardening suite passes. I did not run a full end-to-end Deep Research on a large cache with a loaded local model, and I said so in the PR.</p>
+<p>What I learned:</p>
+<p>1. finish_reason: length has more than one cause.<br>
+Output cap and context exhaustion look the same unless you also look at usage.</p>
+<p>2. Fixed ceilings are guesses.<br>
+A constant that works on a large model silently breaks on a smaller one.</p>
+<p>3. Use the number you already have.<br>
+The context length was sitting right there, one function away.</p>
+<p>4. Wrong error messages are bugs too.<br>
+Sending a user to fix the wrong setting costs more time than the crash.</p>
+<p>Budget the output against the window you actually loaded, not the one you hoped for.</p>
+<p>#Unsloth #AIEngineering #LLM #AIAgents #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/7985" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7985</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#26</span> <span class="post-title">Export silently pip-installed packages into the user&#x27;s environment</span><span class="post-ref">unslothai/unsloth#9554, unslothai/unsloth#9405</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth</span><span class="post-tag">Unsloth Studio</span><span class="post-tag">FP8</span><span class="post-tag">FP4</span><span class="post-tag">llm-compressor</span><span class="post-tag">quantization</span><span class="post-tag">dependency management</span><span class="post-tag">user consent</span><span class="post-tag">Python</span><span class="post-tag">TypeScript</span></div>
+<div class="post-body">
+<p>I exported a model. My Python environment changed without me asking.</p>
+<p>That's the LLM export bug I worked on in Unsloth's model export and quantization path.</p>
+<p>When you export a model with FP8 or FP4 compressed-tensors, Unsloth needs llm-compressor.<br>
+If it wasn't installed, the export just installed a pinned version on first use.</p>
+<p>Convenient.<br>
+Also a little scary.</p>
+<p>Because the caller never agreed to have pip run in their environment.<br>
+Maybe it's a production box. Maybe it's a carefully pinned env. Maybe it's a shared interpreter.</p>
+<p>The first fix that came to mind was wrong.</p>
+<p>The obvious fix: stop auto-installing.</p>
+<p>That breaks everyone who relies on the current behavior.</p>
+<p>So I split it into two layers.</p>
+<p>Layer 1, the library (#9405):<br>
+→ new install_missing_dependencies argument, default still True so nothing changes for existing callers<br>
+→ pass False and it refuses to install<br>
+→ instead it raises with the exact manual command for the active interpreter<br>
+→ the flag is threaded through the merged-save and push-to-hub entry points<br>
+→ the existing environment variable that disables auto-install still wins, even if the flag is True</p>
+<p>Layer 2, Studio (#9554):<br>
+→ a backend probe endpoint that checks whether llm-compressor is missing<br>
+→ a consent dialog before compressed export, showing the target folder and the interpreter<br>
+→ on accept, the choice is passed through the export pipeline<br>
+→ the Studio export always passes the flag explicitly, because the library default is to install</p>
+<p>One detail I like from review:<br>
+Consent to provision a separate runtime is not consent to install into the current interpreter.<br>
+So approving one doesn't silently approve the other.</p>
+<p>For verification, the library PR has tests for the opt-out path, the env-var opt-out and the entry-point defaults. I also ran a GPU end-to-end export on a tiny Llama LoRA with llm-compressor absent: the default path installed it, the opt-out path raised the install command, wrote nothing and installed nothing.</p>
+<p>What I learned:</p>
+<p>1. Installing software is a side effect the user should be able to see.<br>
+"Helpful" and "surprising" are close neighbors.</p>
+<p>2. Add the opt-out before removing the default.<br>
+Backward compatibility and consent can both be honored.</p>
+<p>3. Errors should be actionable.<br>
+Raising with the exact pip command beats a vague "module not found."</p>
+<p>4. Consent is specific.<br>
+Agreeing to one install does not cover another one.</p>
+<p>Convenience that changes someone's environment without asking isn't a feature. It's a surprise.</p>
+<p>#Unsloth #AIEngineering #Quantization #LLM #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/9405" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9405</a><br>
+<a href="https://github.com/unslothai/unsloth/pull/9554" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9554</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#27</span> <span class="post-title">&quot;Local&quot; Claude traffic going to a remote gateway</span><span class="post-ref">unslothai/unsloth#9871</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth</span><span class="post-tag">Claude Code</span><span class="post-tag">local agents</span><span class="post-tag">environment variables</span><span class="post-tag">Azure Foundry</span><span class="post-tag">Bedrock</span><span class="post-tag">Vertex</span><span class="post-tag">Python CLI</span><span class="post-tag">security</span><span class="post-tag">AI agents</span></div>
+<div class="post-body">
+<p>I told the agent to use my local model. The traffic went to a remote gateway.</p>
+<p>This was in Unsloth's `unsloth claude` command and the local-agent child process, part of its AI agent tooling.</p>
+<p>The idea is simple:<br>
+Launch Claude Code and point ANTHROPIC_BASE_URL at a local server.</p>
+<p>The launcher already scrubbed two things from the inherited environment:<br>
+→ ANTHROPIC_API_KEY<br>
+→ CLAUDE_CODE_OAUTH_TOKEN</p>
+<p>I assumed that was enough.</p>
+<p>It wasn't.</p>
+<p>Claude Code also has provider-routing switches for Azure AI Foundry, Bedrock, Vertex and similar backends.<br>
+And those take precedence over ANTHROPIC_BASE_URL.</p>
+<p>So if the parent shell was configured for Foundry, the child process inherited that.<br>
+Then "local" traffic quietly went to the remote gateway anyway.</p>
+<p>No error.<br>
+No warning.<br>
+Just the wrong destination.</p>
+<p>The fix looked simple. It wasn't.</p>
+<p>The first thought was to add one more variable to the list.</p>
+<p>But there were several routing paths, not one:<br>
+→ the Foundry flag, base URL and resource variables<br>
+→ the Bedrock and Vertex flags<br>
+→ the Anthropic-on-AWS and Google Cloud flags<br>
+→ the Mantle flag<br>
+→ an inherited Unix socket setting</p>
+<p>I extended the unset tuple to cover them.</p>
+<p>And there were two launch paths:<br>
+→ the main `unsloth claude` launch<br>
+→ the subagent MCP bridge that spawns the local-agent child</p>
+<p>They share the same tuple, so one change covers both. I also added tests that set these variables in the parent and assert they are absent from the child environment.</p>
+<p>I reproduced the leak with Foundry variables present first, then confirmed they were gone after the fix.</p>
+<p>What I learned:</p>
+<p>1. Inheriting the environment is inheriting configuration.<br>
+Every variable your parent shell has is a decision you did not make.</p>
+<p>2. Precedence rules hide bugs.<br>
+Setting the right base URL means nothing if another switch outranks it.</p>
+<p>3. Scrub by intent, not by incident.<br>
+Ask what could redirect traffic, not just which secret leaked this time.</p>
+<p>4. Test every launch path.<br>
+Two code paths with one shared list is good design. It still needs a test on each side.</p>
+<p>If the destination matters, don't let the environment choose it.</p>
+<p>#Unsloth #AIEngineering #ClaudeCode #AIAgents #APISecurity</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/9871" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9871</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#28</span> <span class="post-title">git not found in the Windows sandbox</span><span class="post-ref">unslothai/unsloth#7323</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">sandbox</span><span class="post-tag">Windows</span><span class="post-tag">PATH</span><span class="post-tag">PATHEXT</span><span class="post-tag">security</span><span class="post-tag">tool-calling agents</span><span class="post-tag">Python</span><span class="post-tag">backend engineering</span></div>
+<div class="post-body">
+<p>git worked in every terminal on my machine. Inside the Studio sandbox it said: not recognized as an internal or external command.</p>
+<p>This one took me into Unsloth Studio's sandboxed terminal tool for tool-calling AI agents, on Windows.</p>
+<p>The model could only run git if it was told to use a short 8.3 path like C:\PROGRA~1\Git\cmd\git.exe.</p>
+<p>The cause:<br>
+The sandbox rebuilds PATH from scratch.<br>
+On Windows, that meant the Studio venv plus System32.</p>
+<p>Git for Windows lives under Program Files.<br>
+So it never made it onto PATH.</p>
+<p>Linux didn't have this problem, because /usr/bin was already there.</p>
+<p>It looked like a one-line fix. It wasn't.</p>
+<p>The naive fix: copy the host PATH into the sandbox.</p>
+<p>That defeats the point of the sandbox.<br>
+Host PATH can include user-writable folders, and a sandbox that auto-approves bare commands can end up running a lookalike binary dropped next to them.</p>
+<p>The same goes for the working directory. cmd and CreateProcess look in the current folder before PATH for bare names.</p>
+<p>So the design became about trust, not convenience:<br>
+→ keep the curated prefix first, so Studio python and pip still win<br>
+→ find the git the host shell resolves, and scan past an untrusted shim if needed<br>
+→ append its directory only if it sits under a Program Files root<br>
+→ resolve those roots with the Windows known-folder API, not environment variables a caller can override<br>
+→ fail closed if that API is unavailable<br>
+→ canonicalize the path, so 8.3 aliases and junctions resolve to the real location<br>
+→ refuse user-writable locations such as per-user shims or temp folders<br>
+→ restrict PATHEXT to .EXE and .COM, adding only the extension of the resolved git launcher<br>
+→ set NoDefaultCurrentDirectoryInExePath so a workdir git.exe or rg.exe can't shadow anything</p>
+<p>I added tests for each rule: the append order, the refused user-writable git directory, an env override not moving the trust boundary, the canonical path, scanning past an untrusted shim, and the fail-closed case.</p>
+<p>What I learned:</p>
+<p>1. "Works on my machine" can be a security feature.<br>
+The sandbox was doing its job. The missing git was the cost.</p>
+<p>2. Fix the usability problem without widening the boundary.<br>
+Add one trusted thing, not everything.</p>
+<p>3. Trust comes from the OS, not the environment.<br>
+Environment variables are input. Known-folder APIs are authority.</p>
+<p>4. Search order is part of the attack surface.<br>
+Where a bare command resolves matters as much as what it resolves to.</p>
+<p>A sandbox isn't useful if it can't run git. It isn't safe if it can run anything.</p>
+<p>#Unsloth #AIEngineering #AIAgents #Python #APISecurity</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/7323" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7323</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#29</span> <span class="post-title">One help line, two false alarms</span><span class="post-ref">unslothai/unsloth#7332</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth</span><span class="post-tag">llama.cpp</span><span class="post-tag">MTP</span><span class="post-tag">LLM inference</span><span class="post-tag">capability probing</span><span class="post-tag">Python</span><span class="post-tag">open source</span><span class="post-tag">production reliability</span></div>
+<div class="post-body">
+<p>Studio warned me that my llama.cpp build "lacks MTP support."<br>
+The build supported MTP just fine.<br>
+In Unsloth Studio's llama.cpp LLM inference backend, this was a good reminder of how much trust we put in CLI output.<br>
+Studio probes llama-server by running --help and looking for the --spec-type option.<br>
+The probe only read the first physical line that contained --spec-type.<br>
+Some builds put the actual enum values on the indented description line below it.<br>
+So the probe never saw them.<br>
+Result: a capable build got a scary startup warning.<br>
+I expected a quick patch. The details mattered.<br>
+Making the parser read more lines is the obvious change.<br>
+The real question was what to conclude when the probe can't tell.<br>
+Before: an empty or crashed --help was treated the same as "no MTP."<br>
+Now the probe parses the full --spec-type help block, declaration plus indented continuation.<br>
+It only says MTP is missing when the enum is clearly listed without mtp or draft-mtp.<br>
+If --help fails or comes back empty, the result is marked inconclusive and the warning stays quiet.<br>
+While digging, I found a second bug in the same area.<br>
+A bare llama-server crash with --mmproj still retries text-only, which is correct.<br>
+But if that retry also failed, the user was told the vision projector was incompatible.<br>
+On some ROCm/driver setups, that's just a crash. The projector was never the problem.<br>
+Now the old wording is kept only for confirmed projector-format errors.<br>
+Anything else is reported as a crash with --mmproj.<br>
+I added tests for multiline help output, empty and crashed probes, an outdated build that should still report no MTP, and the retry messaging. I also checked against a real llama-server build.<br>
+What I took away:<br>
+1. Parse the whole block, not the first line.<br>
+Help text wraps. A format that worked yesterday can move a value to the next line.<br>
+2. "I couldn't tell" is a third state.<br>
+Absence of evidence shouldn't be reported as evidence of absence.<br>
+3. Fail open for warnings, fail closed for claims.<br>
+A false alarm teaches users to ignore the real ones.<br>
+4. Error messages are part of the API.<br>
+Blaming the wrong component sends people down the wrong debugging path.<br>
+A capability probe should only say "unsupported" when it has actually seen proof.</p>
+<p>#Unsloth #BackendEngineering #llamacpp #LLM #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/7332" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7332</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#30</span> <span class="post-title">Zod v4 schema lost its adapter</span><span class="post-ref">mastra-ai/mastra#21187</span></summary>
+<div class="post-tags"><span class="post-tag">Mastra</span><span class="post-tag">AI agents</span><span class="post-tag">TypeScript</span><span class="post-tag">Zod v4</span><span class="post-tag">tool calling</span><span class="post-tag">schema validation</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>An invalid tool call from an LLM crashed the Mastra AI agent.<br>
+Not with a validation error. With:<br>
+Cannot read properties of undefined (reading 'input')</p>
+<p>The cause was in CoreToolBuilder. When background tasks are enabled, it injects extra fields into a tool's input schema: _background, suspendedToolRunId, resumeData. For Zod v4 schemas it does that through safeExtendZodObject.</p>
+<p>That helper returns a fresh ZodObject, and the fresh object drops the custom ~standard.jsonSchema adapter that createTool() and toStandardSchema had installed. So the schema looked fine until something tried to convert it to JSON Schema. Then it blew up on the bad input.</p>
+<p>A try/catch around the conversion would hide the crash and keep the root cause. So I fixed it where the mutation happens: after the fields are injected, the extended schema is re-wrapped with toStandardSchema, matching what the non-Zod-v4 fallback path already did.</p>
+<p>I added a regression test that builds a Zod v4 tool, enables background tasks, and sends a malformed _background value. It now gets back a "Tool input validation failed" error, and the tool's execute function is never called.</p>
+<p>Why this matters for agents: an LLM can recover from a clear error message, but not from a crash. Malformed arguments show up in production, so the unhappy path is the real path.</p>
+<p>Agent reliability often comes down to what happens when the model is wrong.</p>
+<p>#Mastra #AIEngineering #AIAgents #TypeScript #LLM</p>
+<p><a href="https://github.com/mastra-ai/mastra/pull/21187" target="_blank" rel="noopener noreferrer">https://github.com/mastra-ai/mastra/pull/21187</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#31</span> <span class="post-title">The second tool call vanished</span><span class="post-ref">mastra-ai/mastra#19940</span></summary>
+<div class="post-tags"><span class="post-tag">Mastra</span><span class="post-tag">AI agents</span><span class="post-tag">TypeScript</span><span class="post-tag">tool calling</span><span class="post-tag">state management</span><span class="post-tag">agent runtime</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>My agent ran two tools in a row.</p>
+<p>In Mastra, the TypeScript AI agent runtime, the second tool executed but its result was never shown to the model.</p>
+<p>Nothing crashed. The next prompt just quietly lost both the tool call and its result.</p>
+<p>The setup in Mastra's AgentController: non-yolo mode, two sequential tool calls, both auto-approved by an effective allow policy.</p>
+<p>On the second resume, the controller hydrated its MessageList from the previous suspended snapshot. Validation had looked at the newer one, which contained the second tool call ID. But resumeStream and resumeGenerate still passed the stale one into resumeContext, so updateToolInvocation() couldn't find the second toolCallId.</p>
+<p>Re-fetching at hydration time would add a second lookup that can disagree with the first. The real problem was two sources.</p>
+<p>So #validateSuspendedToolCallTarget() now returns the suspended snapshot matching the resumed toolCallId, and resume hydrates from that exact snapshot. I also stopped relying only on status === "suspended" as the freshness check, since a stale snapshot has that status too.</p>
+<p>The regression test runs two sequential allow-policy tool calls and asserts that the second tool call and its result survive into the final model prompt.</p>
+<p>Execution counts said everything was fine while the model worked with half the history. Asserting on what the model actually sees catches that.</p>
+<p>How do you test agent state: execution counts, or the exact prompt that reaches the model?</p>
+<p>#Mastra #AIAgents #TypeScript #AIEngineering #LLM</p>
+<p><a href="https://github.com/mastra-ai/mastra/pull/19940" target="_blank" rel="noopener noreferrer">https://github.com/mastra-ai/mastra/pull/19940</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#32</span> <span class="post-title">Delete succeeded, the model stayed</span><span class="post-ref">langgenius/dify#39708</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">Python</span><span class="post-tag">SQLAlchemy</span><span class="post-tag">database migration</span><span class="post-tag">backwards compatibility</span><span class="post-tag">LLM platform</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>I deleted a custom model in Dify.<br>
+Dify's backend API said success.<br>
+The model was still there.<br>
+This showed up after upgrading from 1.14 to 1.15 and later.<br>
+Listing worked. Delete did nothing. And nothing failed, which made it harder to spot.<br>
+The cause was a mismatch between how the app reads data and how it queries it.<br>
+Older custom model rows can still store legacy model_type values:<br>
+→ text-generation<br>
+→ embeddings<br>
+→ reranking<br>
+The current code uses canonical values:<br>
+→ llm<br>
+→ text-embedding<br>
+→ rerank<br>
+Reads go through EnumText, which normalizes the legacy values on the way out.<br>
+So the list looked correct.<br>
+But the delete lookup compared the column against the canonical value in SQL.<br>
+Equality against "llm" doesn't match a row that says "text-generation".<br>
+No row found. Nothing deleted. Success returned.<br>
+Not a one-line fix, it turned out.<br>
+A data migration is the obvious answer, but it doesn't help installations that haven't run it yet.<br>
+And the read-side normalization means the app can't tell the rows are old.<br>
+So the fix is on the query side.<br>
+I added a small helper, _model_type_db_values(), that uses ModelType.to_origin_model_type() to return both the canonical value and its legacy alias.<br>
+The custom model, credential, and model-setting lookups used by the delete flows now filter with IN over both values.<br>
+I added tests that check the alias mapping for LLM, embedding, and rerank, and that the custom model lookup uses the legacy-aware filter.<br>
+What I took away:<br>
+1. Normalizing on read doesn't normalize in SQL.<br>
+If an ORM type converts values on the way out, your WHERE clauses still see the raw column.<br>
+2. "Success" with no rows affected is a bug smell.<br>
+Delete paths should notice when they found nothing to delete.<br>
+3. Upgrades leave old data behind.<br>
+Code has to work against the database you actually have, not the one you wish you had.<br>
+4. Read paths and write paths need the same assumptions.<br>
+If listing works but delete doesn't, check how each one sees the data.<br>
+A silent no-op is the hardest kind of failure to notice.</p>
+<p>#Dify #BackendEngineering #Python #SQLAlchemy #LLM</p>
+<p><a href="https://github.com/langgenius/dify/pull/39708" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify/pull/39708</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#33</span> <span class="post-title">The answer rendered inside the thinking block</span><span class="post-ref">langgenius/dify#41764</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">reasoning models</span><span class="post-tag">GLM</span><span class="post-tag">LLM agents</span><span class="post-tag">streaming</span><span class="post-tag">Python</span><span class="post-tag">markdown rendering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>My agent's final answer showed up inside a collapsed "thinking" block.<br>
+The model had answered correctly. The UI just treated the answer as reasoning.<br>
+This happened in Dify's AI agent chat with reasoning models like GLM, which wrap chain-of-thought in &lt;think&gt; tags.<br>
+The trigger was a tool call.<br>
+Sometimes the model starts a think block and generation is interrupted by a tool call before &lt;/think&gt; is ever emitted.<br>
+Then a later &lt;think&gt; block, or the actual answer, ends up nested inside a tag that never closed.<br>
+Markdown then renders an unclosed &lt;details data-think&gt;, and the reply is displayed as thinking.<br>
+A quick patch would have been the wrong fix.<br>
+The first idea is to fix it in the frontend only.<br>
+But the unclosed tag is already in the text stream, and in stored output.<br>
+So I fixed it in two places.<br>
+In the Workflow Agent node, I added a streaming ThinkStreamState.<br>
+It tracks whether a think block is open as chunks arrive, and inserts the missing &lt;/think&gt; when:<br>
+→ a tool log or link interrupts the stream<br>
+→ a new &lt;think&gt; starts after real content<br>
+→ the stream ends<br>
+In the markdown preprocessor, the same repair runs on the text itself, so already stored or LLM-tagged output still renders as valid think blocks.<br>
+One detail I had to get right: a &lt;think&gt; that opens immediately after another with no content in between is just skipped, not treated as nesting.<br>
+Tracking whether any non-whitespace content has appeared since the open tag handles this.<br>
+I added tests around the agent node for text and tool-log chunks.<br>
+What I learned:<br>
+1. Streaming needs state.<br>
+You can't repair a tag by looking at one chunk. You have to know what's still open.<br>
+2. Model output is untrusted input.<br>
+Reasoning models don't always produce well-formed markup, especially around tool calls.<br>
+3. Repair at the source and at the render layer.<br>
+Fixing the stream helps new output. Fixing the renderer helps what's already stored.<br>
+4. Interruptions are the edge case.<br>
+Tool calls break generation in the middle of structure, so structure has to be closed explicitly.<br>
+Valid output and well-formed output aren't the same thing.</p>
+<p>#Dify #AIEngineering #AIAgents #LLM #ReasoningModels</p>
+<p><a href="https://github.com/langgenius/dify/pull/41764" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify/pull/41764</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#34</span> <span class="post-title">CSV cells silently rewritten by pandas</span><span class="post-ref">langgenius/dify#41922</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">RAG</span><span class="post-tag">pandas</span><span class="post-tag">Python</span><span class="post-tag">data ingestion</span><span class="post-tag">knowledge base</span><span class="post-tag">LLM</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>My CSV had the product code 00123.<br>
+My Dify RAG knowledge base indexed 123.0.</p>
+<p>Nothing crashed. No warning. The retrieval just quietly had the wrong data.</p>
+<p>The cause sits in Dify's knowledge import path. The CSV extractor reads the file with pandas before building the text that gets indexed, and pandas tries to be helpful by default:</p>
+<p>→ 00123 becomes 123.0<br>
+→ a literal "NA" becomes nan<br>
+→ a literal "NULL" or an empty cell becomes nan</p>
+<p>Quoting the cells doesn't help, because the corruption happens after the file is parsed correctly.</p>
+<p>So I changed the extractor's defaults:<br>
+→ dtype=str, every cell stays the text it was in the file<br>
+→ keep_default_na=False, "NA" and "NULL" stay as strings</p>
+<p>Any explicit csv_args passed by a caller still override them, so typed parsing is still available.</p>
+<p>Before: code: 123.0;region: nan<br>
+After: code: 00123;region: NA</p>
+<p>I added unit tests for preserved cell text, source metadata handling, and the explicit-override path.</p>
+<p>For analytics, type inference is a feature. For RAG ingestion, the source text is the data, so a library default built for one job can quietly break the other.</p>
+<p>In RAG, the quality of your answers can be decided before the first embedding is computed.</p>
+<p>#Dify #AIEngineering #RAG #Python #LLM</p>
+<p><a href="https://github.com/langgenius/dify/pull/41922" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify/pull/41922</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#35</span> <span class="post-title">Excel parser thought full sheets were empty</span><span class="post-ref">infiniflow/ragflow#19237</span></summary>
+<div class="post-tags"><span class="post-tag">RAGFlow</span><span class="post-tag">RAG</span><span class="post-tag">Excel</span><span class="post-tag">openpyxl</span><span class="post-tag">Python</span><span class="post-tag">Go</span><span class="post-tag">document parsing</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>A spreadsheet full of data. RAGFlow parsed zero rows from it.</p>
+<p>Another one lost everything after a blank gap in the middle.</p>
+<p>I picked up a batch of document parser bugs in RAGFlow's RAG pipeline, and the first two shared a root cause.</p>
+<p>The Excel parser needed to know where the real data ends. A sheet's max_row is often inflated by formatting far below the data, so the parser tried to be smart:</p>
+<p>→ check the first 100 rows, and if they're blank, call the sheet empty<br>
+→ binary search for the last row that has data</p>
+<p>Looks reasonable. Except it wasn't.</p>
+<p>Binary search assumes contiguous data. A blank preamble before the header, or a gap between two blocks, breaks that. The search lands in the gap and concludes everything after it doesn't exist.</p>
+<p>Tuning the numbers would just move the failure to a bigger sheet. What I changed instead: openpyxl only materializes cells that exist in the file, so the new code scans those and takes the highest row with a non-blank value, ignoring styling-only cells.</p>
+<p>Two smaller fixes went in the same PR:</p>
+<p>→ UTF-8 BOM stripped before JSON/JSONL parsing, so Windows-exported files no longer silently return zero records<br>
+→ the Go QA chunker routes XLSX JSON items whose text is a rendered HTML table through the table extractor instead of delimiter-based text parsing</p>
+<p>Regression tests cover data below row 100, a blank gap with an inflated used range, BOM vs no-BOM, and the Go HTML-table path.</p>
+<p>1. Heuristics that assume contiguous data fail on real files.</p>
+<p>2. Ask the data structure, don't search it.</p>
+<p>3. Silent zero-row output looks like an empty file, not a bug.</p>
+<p>Document parsing is where a lot of RAG quality is quietly won or lost.</p>
+<p>#RAGFlow #AIEngineering #RAG #Python #LLM</p>
+<p><a href="https://github.com/infiniflow/ragflow/pull/19237" target="_blank" rel="noopener noreferrer">https://github.com/infiniflow/ragflow/pull/19237</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#36</span> <span class="post-title">Autosave wiped a working pipeline</span><span class="post-ref">infiniflow/ragflow#18783</span></summary>
+<div class="post-tags"><span class="post-tag">RAGFlow</span><span class="post-tag">TypeScript</span><span class="post-tag">React</span><span class="post-tag">Zustand</span><span class="post-tag">data loss</span><span class="post-tag">agents</span><span class="post-tag">frontend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>An editor tab left open. A backend restart. A Data Pipeline that was working yesterday is now empty.</p>
+<p>Nobody clicked anything.</p>
+<p>This was the bug behind a wiped pipeline report in RAGFlow's RAG pipeline editor, and it turned out to be the canvas autosave.</p>
+<p>The autosave watched the graph store for changes to nodes and edges, and 20 seconds after any change it called saveGraph().</p>
+<p>Including a change to [].</p>
+<p>And an empty graph is exactly what the store looks like:<br>
+→ before the agent has loaded<br>
+→ after a remount<br>
+→ when the backend returns a snapshot without a DSL</p>
+<p>So the sequence was:<br>
+Store resets to empty. Autosave sees a change. 20 seconds later it PUTs components: {} over a perfectly good pipeline.</p>
+<p>Easy fix. Skip saving when the canvas is empty.<br>
+Except it wasn't that simple, because an empty canvas can also be a legitimate state. A user may really have deleted everything.</p>
+<p>So I separated the two cases.</p>
+<p>Autosave now runs only when:<br>
+→ the agent id is present<br>
+→ the agent detail has loaded<br>
+→ the chat drawer is closed<br>
+→ the canvas has at least one node or edge</p>
+<p>Explicit Save still persists an empty canvas.<br>
+Automatic saves are guesses. User-initiated saves are intent.</p>
+<p>Two more guards went in:<br>
+→ the save hook no longer PUTs without an id<br>
+→ the fetch hook doesn't apply the DSL to the store until a DSL actually exists, so a later empty response can't clear a loaded canvas</p>
+<p>I pulled the decision into a small pure function, shouldAutosaveCanvas, and added tests for each skip condition, plus fetch-hook tests showing an empty response doesn't overwrite a loaded graph. One honest note: I could not run the full web Jest suite in my environment, which I called out in the PR.</p>
+<p>What I took away:</p>
+<p>1. Default state is not user state.<br>
+An empty store means "not loaded yet" at least as often as "user cleared it".</p>
+<p>2. Autosave is a write path, so it needs preconditions.<br>
+Never write unless you know the state you're writing is real.</p>
+<p>3. Separate automatic from explicit.<br>
+The same action can be safe when a user asks for it and dangerous when a timer does it.</p>
+<p>4. Put the decision in a pure function.<br>
+It's easy to test every case when the rule isn't buried in a hook.</p>
+<p>The scariest bugs are the ones that delete data while nobody is looking.</p>
+<p>#RAGFlow #AIEngineering #TypeScript #React #RAG</p>
+<p><a href="https://github.com/infiniflow/ragflow/pull/18783" target="_blank" rel="noopener noreferrer">https://github.com/infiniflow/ragflow/pull/18783</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#37</span> <span class="post-title">Slow network blocked Explore page</span><span class="post-ref">langgenius/dify#40176</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">Python</span><span class="post-tag">caching</span><span class="post-tag">backend engineering</span><span class="post-tag">performance</span><span class="post-tag">SSR</span><span class="post-tag">httpx</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The Explore page in Dify felt slow.<br>
+On some networks it just hung, and the fault was in Dify's Python backend.</p>
+<p>It wasn't the database or the LLM layer. It was a template fetch.</p>
+<p>With HOSTED_FETCH_APP_TEMPLATES_MODE=remote, every Explore or Learn Dify request called tmpl.dify.ai with a bare httpx.get(). No cache. On a slow or blocked network, that blocked server-side rendering for up to the 10 second timeout.</p>
+<p>I added an in-memory TTL cache around the remote template fetches. The design choices:</p>
+<p>→ cache key is the URL plus the Origin header, which the existing code already forwards<br>
+→ only successful 200 responses are cached<br>
+→ TTL is configurable via HOSTED_FETCH_APP_TEMPLATES_CACHE_TTL, default 600 seconds, and 0 disables caching<br>
+→ access goes through a lock, since Flask serves concurrent requests</p>
+<p>Tests cover one network hit for repeated calls, failures not cached, TTL 0, and separate origins.</p>
+<p>The takeaway: a remote call on the request path needs a budget, and a cache around it needs rules for what goes in the key, what never gets stored, and how to turn it off.</p>
+<p>Reliability work in an AI platform isn't only about models. A lot of it is about the boring HTTP calls around them.</p>
+<p>#Dify #BackendEngineering #Python #Caching #LLM</p>
+<p><a href="https://github.com/langgenius/dify/pull/40176" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify/pull/40176</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#38</span> <span class="post-title">local_files_only still hit the network</span><span class="post-ref">unslothai/unsloth#7482</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth</span><span class="post-tag">Hugging Face</span><span class="post-tag">transformers</span><span class="post-tag">offline</span><span class="post-tag">tokenizer</span><span class="post-tag">LLM fine-tuning</span><span class="post-tag">Python</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>I set local_files_only=True.<br>
+The tokenizer files were already in the local cache.<br>
+Unsloth, the LLM fine-tuning library, still tried to reach the Hugging Face Hub.</p>
+<p>For anyone working offline, on an air-gapped box, or behind a strict firewall, that's a hard failure.</p>
+<p>I traced it while working on Unsloth's offline tokenizer loading.</p>
+<p>On transformers 4.57.2 through 5.5.4, PreTrainedTokenizerFast.from_pretrained(repo_id, local_files_only=True) can still call model_info() when no offline environment variable is set.<br>
+That window includes 4.57.6, which Studio pins.</p>
+<p>So the flag said "don't touch the network."<br>
+The library touched the network anyway.</p>
+<p>Upstream fixed this properly in transformers 5.6.0. But we can't just say "upgrade" while supported versions sit below it.</p>
+<p>Easy fix. Set HF_HUB_OFFLINE for the user.<br>
+Except that changes global process behavior for something that's only meant to affect one load.</p>
+<p>So the workaround avoids the repo id entirely:<br>
+→ resolve the cached snapshot with hf_hub_download(..., local_files_only=True)<br>
+→ load the tokenizer from that local directory path<br>
+→ a local path never triggers the Hub metadata probe</p>
+<p>I wired it into the tokenizer loader, the vision processor fallback, and the save path, where a local cache check for tokenizer.model now happens before HfApi.model_info when offline.<br>
+The helper's defaults stay closed, so it can't accidentally download with backoff when called without the flag.</p>
+<p>I also added unit tests, wired into CI, plus integration tests that block the network and are gated on a populated local cache.</p>
+<p>And I was explicit in the PR about scope: this does not close the reporter's full failure. That root cause lives in unsloth_zoo and stays tracked separately.</p>
+<p>What I took away:</p>
+<p>1. A flag documents intent, not behavior.<br>
+Test offline mode with the network actually blocked.</p>
+<p>2. Version windows matter.<br>
+A bug can live across a range of dependency versions you still have to support.</p>
+<p>3. Workarounds should be temporary and labeled.<br>
+Say which upstream fix retires them.</p>
+<p>4. Be honest about scope.<br>
+A PR that fixes one layer shouldn't imply it fixes the whole bug.</p>
+<p>"Offline" only means something if the network is really off the table.</p>
+<p>#Unsloth #AIEngineering #HuggingFace #Python #LLM</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/7482" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7482</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#39</span> <span class="post-title">Streaming markdown backslash line</span><span class="post-ref">unslothai/unsloth#11501</span></summary>
+<div class="post-tags"><span class="post-tag">LLM</span><span class="post-tag">AI chat UI</span><span class="post-tag">streaming</span><span class="post-tag">markdown</span><span class="post-tag">TypeScript</span><span class="post-tag">frontend performance</span><span class="post-tag">Unsloth Studio</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>One long line of backslashes froze my streaming chat UI for seconds.<br>
+Not a crash. Not an error. Just a render in Unsloth Studio's local LLM chat that never seemed to finish.</p>
+<p>This one came up in Unsloth Studio, the chat UI for running LLMs locally.<br>
+Paste a Windows path, a regex, or escaped JSON into a message.<br>
+Make it long.<br>
+And every streamed render started costing seconds.</p>
+<p>My first suspicion was the model, or the streaming transport.<br>
+It was neither.</p>
+<p>The cost was in how we split markdown into blocks.<br>
+Streaming LLM output is re-rendered constantly, so the renderer splits the text into blocks and only re-renders the ones that changed.<br>
+To split blocks, we called marked's Lexer.lex.<br>
+That runs the block lexer AND the inline lexer.<br>
+We only needed block boundaries.<br>
+The inline pass was pure waste, and on a long line full of backslash escapes it was the expensive part.</p>
+<p>Easy fix: skip the inline pass.<br>
+Except it wasn't, because the splitter we were calling lived inside a dependency.</p>
+<p>So the fix was:<br>
+→ Vendor a block-only splitter that calls blockTokens instead of Lexer.lex<br>
+→ Keep the same merge rules (HTML tag stacks, $$ math blocks, footnotes, CRLF) as the streamdown version it replaces<br>
+→ Wire the streaming scheduler, the streaming markdown path and the LaTeX path to it<br>
+→ Pin marked to 17.0.6 so it matches the version streamdown uses</p>
+<p>The important part was proving I hadn't changed behavior.<br>
+The test suite compares my splitter against streamdown's on a set of samples: headings, code fences, unclosed $$, nested HTML, tables, CRLF, footnotes and long backslash lines.<br>
+A separate perf test feeds a 200,000-character backslash line and asserts the split finishes in under 500ms.</p>
+<p>What I took away:</p>
+<p>1. Know which layer of a parser you actually need.<br>
+If you only want block boundaries, don't pay for inline parsing.</p>
+<p>2. Streaming multiplies every constant.<br>
+A cost you'd never notice once becomes a freeze when the UI re-renders on every token batch.</p>
+<p>3. Adversarial-looking input is normal input.<br>
+Paths, regexes and escaped JSON are everyday content in AI chat apps.</p>
+<p>4. Vendoring needs an equivalence test.<br>
+If you copy a function to change its behavior, prove it still matches the original everywhere you didn't mean to change it.</p>
+<p>The fastest render is the one that doesn't do work you never needed.</p>
+<p>#Unsloth #AIEngineering #TypeScript #LLM #Streaming</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/11501" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/11501</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#40</span> <span class="post-title">Context bar after model load</span><span class="post-ref">unslothai/unsloth#7453</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">LLM</span><span class="post-tag">context window</span><span class="post-tag">token counting</span><span class="post-tag">race conditions</span><span class="post-tag">TypeScript</span><span class="post-tag">Python</span><span class="post-tag">backend engineering</span></div>
+<div class="post-body">
+<p>I loaded a new model. The context usage bar went blank.<br>
+Nothing was broken. The bar just had no idea how full the chat was.</p>
+<p>This was in Unsloth Studio, the local LLM app, and it looked like a small UI gap in context window token counting.<br>
+The X / Y token bar was only ever written from streaming completion metadata.<br>
+Loading a model cleared it.<br>
+So until you sent another message, you couldn't tell whether your existing chat still fit the model you had just loaded.</p>
+<p>Quick fix. Just recount the thread after the load.<br>
+That would have been the wrong fix.</p>
+<p>A background recount is a different animal from a completion:<br>
+→ it has no abort signal<br>
+→ it runs while the user keeps clicking<br>
+→ it can finish after the world has moved on</p>
+<p>So the design became mostly about what the recount must refuse to do.</p>
+<p>On the backend I added POST /api/inference/chat/count_tokens. It prices OpenAI-form messages with the loaded GGUF tokenizer, through the same sanitization the completion path runs.<br>
+It never auto-switches models. If it honoured a stale model name, a recount that started on model A could drag the backend back to A after you loaded B.<br>
+Review pushed it further. It refuses while a generation is in flight, and the count stands down between its two llama-server calls if one starts mid-count.<br>
+It also declines images and audio instead of returning a number that is too small.</p>
+<p>On the frontend, refreshContextUsage() rebuilds the displayed branch from stored history and drops its own result if:<br>
+→ the checkpoint moved<br>
+→ the thread changed<br>
+→ a real completion wrote usage while it was in flight</p>
+<p>For verification, I added a negative control: reverting only the runtime provider change makes the new cases fail on a wrong value, not on a missing symbol.</p>
+<p>What I took away:</p>
+<p>1. A background job needs an invalidation story.<br>
+Decide up front what makes its answer stale, then check that before publishing.</p>
+<p>2. Read-only endpoints can still cause side effects.<br>
+A "count" that triggers a model switch is not read-only.</p>
+<p>3. An approximate number can be worse than no number.<br>
+If the count would come back short, say nothing.</p>
+<p>4. Prove your test can fail.<br>
+A negative control tells you the test is guarding the behavior, not just the code shape.</p>
+<p>This is the kind of LLM serving detail that never shows up in a demo, but decides whether a local inference UI can be trusted.</p>
+<p>A number on screen is a claim. Don't publish it if you can't say it's still true.</p>
+<p>#Unsloth #AIEngineering #LLM #TypeScript #Python</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/7453" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7453</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#41</span> <span class="post-title">Auto-compaction controls</span><span class="post-ref">unslothai/unsloth#9774</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">LLM</span><span class="post-tag">context window</span><span class="post-tag">GGUF</span><span class="post-tag">llama.cpp</span><span class="post-tag">rolling context</span><span class="post-tag">input validation</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>My chat history was being trimmed, and I couldn't turn it off.<br>
+Local GGUF chats in Unsloth Studio, a local LLM inference app built on llama.cpp, always sent context_overflow: truncate_oldest.</p>
+<p>So when the window filled, Studio compacted for you.<br>
+By default it reset the conversation to a checkpoint.<br>
+Or it dropped extra history, about 25% of the prompt budget, so the boundary wouldn't move on the very next turn.<br>
+That's reasonable behavior. It's just not always the behavior you want.</p>
+<p>The obvious fix. Add a toggle.<br>
+The obvious fix had a catch.</p>
+<p>The policy lived in rolling-context and checkpoint code, and the headroom value was in the middle of all of it.<br>
+What I added to Chat settings:<br>
+→ Auto-compact long chats, on by default<br>
+→ When it's off, context_overflow isn't sent, so a full window errors instead of silently dropping history<br>
+→ Reset conversation, or drop oldest turns<br>
+→ Extra trim of roughly 25%, 10%, 5% or none</p>
+<p>Under the hood these are per-request overrides: context_policy overrides UNSLOTH_CONTEXT_POLICY, and compaction_headroom_ratio overrides the process default.<br>
+Requests that don't set them keep the existing defaults, so API clients are unchanged.</p>
+<p>The part I cared about most was the headroom ratio.<br>
+A UI slider is user input. If a bad value reached the backend, "extra trim" could eat the whole prompt.<br>
+So the ratio is clamped server-side to [0, 0.9], and every per-request override goes through the same gate.<br>
+The UI is a convenience. The server is the boundary.</p>
+<p>I covered it with frontend tests for the settings and rolling window, and backend tests for the headroom override, for rolling policy winning over a checkpoint default, and for the settings payload bounds.</p>
+<p>What I learned:</p>
+<p>1. Silent data loss should be a choice.<br>
+If a system drops context, users should be able to see it and turn it off.</p>
+<p>2. Per-request overrides beat global flags.<br>
+They give you control without breaking existing clients.</p>
+<p>3. Validate at the server.<br>
+A slider's range is a hint. The API has to enforce it anyway.</p>
+<p>4. Defaults are part of the contract.<br>
+Adding a setting shouldn't change what happens when it's unset.</p>
+<p>LLM context management is product behavior, not just a token budget.</p>
+<p>If the user can't see what was dropped, the context window is lying to them.</p>
+<p>#Unsloth #AIEngineering #LLM #llamacpp #GGUF</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/9774" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9774</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#42</span> <span class="post-title">Vulkan backend for legacy AMD on Windows</span><span class="post-ref">unslothai/unsloth#7373</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">llama.cpp</span><span class="post-tag">Vulkan</span><span class="post-tag">ROCm</span><span class="post-tag">HIP</span><span class="post-tag">AMD</span><span class="post-tag">Windows</span><span class="post-tag">installer</span><span class="post-tag">Python</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The installer worked fine. The GPU just wasn't there.<br>
+In the Unsloth Studio installer for local LLM inference, an RX 480 on Windows AMD was invisible to llama-server.</p>
+<p>The installer always picked the HIP prebuilt for AMD.<br>
+Vulkan was only auto-selected for Intel and other GPUs.<br>
+Cards below the HIP prebuilt's gfx floor, like gfx803, simply never showed up.</p>
+<p>One user had a workaround.<br>
+They copied the official Vulkan build over the bundled one, with an RX 9070 XT and an RX 480 in the same machine.<br>
+It worked. Then the next Studio update put HIP back.</p>
+<p>Easy fix. Prefer Vulkan on AMD.<br>
+Except it wasn't.</p>
+<p>That would break the mixed setup where the default card is HIP-supported. There, HIP is the right answer.<br>
+So the design became two separate rules:</p>
+<p>→ Explicit opt-in: UNSLOTH_LLAMA_BACKEND=vulkan (or --llama-backend vulkan) works on any host. The choice is stored as llama_backend in the prebuilt info file, so updates re-assert it.<br>
+→ Auto-fallback: only when the active gfx arch, the device HIP can actually see, isn't supported by the HIP prebuilt.</p>
+<p>Review kept making the fallback more careful:<br>
+→ HIP_VISIBLE_DEVICES and similar masks change which card counts as active<br>
+→ Family labels like gfx110X from update markers must keep HIP<br>
+→ Fork-only gfx targets can't be treated as supported by other repos<br>
+→ If no gfx arch is resolved, don't force Vulkan</p>
+<p>Mixed setups stay on HIP by default. Vulkan there is opt-in.</p>
+<p>For verification, I ran the routing and Vulkan update-preservation tests with mocked host profiles. I did not have a Windows AMD dual-GPU machine, so I said so in the PR and listed the manual checks I wanted before merge.</p>
+<p>What I learned:</p>
+<p>1. Fallback rules need a definition of "active".<br>
+On multi-GPU hosts, the best device isn't always the one your runtime will use.</p>
+<p>2. Explicit user choices should persist.<br>
+If an update silently reverts it, it wasn't a setting.</p>
+<p>3. Unknown should not mean unsupported.<br>
+When detection fails, don't guess a backend.</p>
+<p>4. Be honest about what you couldn't test.<br>
+Hardware you don't own is a gap to name, not hide.</p>
+<p>Good installers choose conservatively and remember what you asked for.</p>
+<p>#Unsloth #AIEngineering #llamacpp #Vulkan #ROCm</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/7373" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/7373</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#43</span> <span class="post-title">Rate-limit errors in llama.cpp updates</span><span class="post-ref">unslothai/unsloth#9980</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">llama.cpp</span><span class="post-tag">GitHub API</span><span class="post-tag">rate limiting</span><span class="post-tag">error handling</span><span class="post-tag">installer</span><span class="post-tag">Python</span><span class="post-tag">production reliability</span></div>
+<div class="post-body">
+<p>The update failed. The error message was a wall of PATH variables.<br>
+The actual reason was in the log. Just not in the part we showed.</p>
+<p>Unsloth Studio's llama.cpp updater kept failing on GitHub API rate limits for some users.<br>
+The updater pins a release tag, and that always went through api.github.com.<br>
+Without GH_TOKEN, unauthenticated calls hit rate limits with a 403 or 429.<br>
+The installer exited with code 2, and on Windows the in-app updater doesn't fall back to a source build.</p>
+<p>Then the UI made it worse.<br>
+stream_installer kept only the last 1500 characters of stdout.<br>
+The real line, "prebuilt fallback reason ... set GH_TOKEN", had been pushed out by a long system report.</p>
+<p>Simple fix. Show more output.<br>
+It wasn't that simple.</p>
+<p>More output is still noise. The better question was why a common update needed the API at all.<br>
+So the fix has two parts:</p>
+<p>→ Pinned release tags now use the existing download-host CDN path, with no api.github.com call in the common case<br>
+→ When something does fail, actionable lines are preferred over the raw tail</p>
+<p>Review made the error handling stricter:<br>
+→ A rate-limit message needs both GitHub and rate-limit wording. huggingface.co can also return a 429 on the validation model download, and telling that user to set GH_TOKEN wouldn't help<br>
+→ A retry that succeeds shouldn't beat the installer's final verdict<br>
+→ A GitHub 429 is a rate limit, not just a 403</p>
+<p>I checked it with targeted pytest cases for the CDN routing, error formatting and updater messages. I also reproduced the original failure with a mocked 403 and a long PATH tail before the fix.</p>
+<p>What I took away:</p>
+<p>1. Rate limits are a normal operating condition.<br>
+Design the common path so it doesn't depend on a quota.</p>
+<p>2. Don't truncate the reason.<br>
+The last N characters is not the same as the most useful N characters.</p>
+<p>3. Error attribution matters.<br>
+Blaming the wrong service sends users to the wrong fix.</p>
+<p>4. Retries are not verdicts.<br>
+Report what finally happened.</p>
+<p>Production reliability is often a message problem: users can only fix what you tell them.</p>
+<p>The best error message names the cause and the next step.</p>
+<p>#Unsloth #BackendEngineering #llamacpp #Python #ProductionReliability</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/9980" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9980</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#44</span> <span class="post-title">MinerU server_url in RAGFlow Go parser</span><span class="post-ref">infiniflow/ragflow#19445</span></summary>
+<div class="post-tags"><span class="post-tag">RAGFlow</span><span class="post-tag">MinerU</span><span class="post-tag">RAG</span><span class="post-tag">PDF parsing</span><span class="post-tag">Go</span><span class="post-tag">document ingestion</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The PDF parser was configured correctly. The inference address never arrived.<br>
+In RAGFlow's Go backend for RAG document ingestion, on the MinerU path, the vlm and hybrid http-client backends lost their downstream server URL.</p>
+<p>The provider UI collected mineru_server_url.<br>
+The Go code never forwarded it to MinerU.<br>
+So http-client backends had a backend name and nowhere to send the work.</p>
+<p>There were two call sites:<br>
+→ The ingestion path, dispatchMinerUPDF and mineruStreamParse<br>
+→ The PDF parser path, the async task client in mineru_local.go</p>
+<p>Quick fix. Add a field to the request.<br>
+The details mattered.</p>
+<p>The value can come from several places, so the real work was deciding precedence:<br>
+→ parser setup<br>
+→ the MinerU provider api_key JSON<br>
+→ the MINERU_SERVER_URL environment variable</p>
+<p>I wrote a resolver that handles all three, and both Go paths send the result as the server_url multipart field, mirroring the Python contract.</p>
+<p>I also added validation:<br>
+→ Backend names are checked locally against the MinerU list: pipeline, vlm-engine, hybrid-engine, vlm-http-client, hybrid-http-client<br>
+→ vlm-http-client and hybrid-http-client require a server URL<br>
+→ A missing URL fails fast with a clear error</p>
+<p>That last point is a deliberate behavior change, so I wrote a migration note in the PR. Deployments that used http-client backends without a URL will now fail at parse time until it is set.</p>
+<p>Tests cover forwarding the field, reading it from the provider JSON, the missing-URL error, and invalid backend rejection on both paths. I also called out what I did not verify: live testing of the leftover async task client against a real MinerU service.</p>
+<p>What I learned:</p>
+<p>1. A config field the UI collects but the backend drops is a silent bug.<br>
+Nothing crashes. The feature just doesn't work.</p>
+<p>2. Cross-language rewrites need contract tests.<br>
+Matching the Python behavior is the spec.</p>
+<p>3. Define precedence once.<br>
+A single resolver beats scattered fallbacks.</p>
+<p>4. Fail early on missing required config.<br>
+A clear error at parse time is better than a confusing failure downstream.</p>
+<p>Good RAG pipelines depend on boring plumbing: the document parser has to reach the model it was configured to use.</p>
+<p>Configuration that never reaches the worker is just decoration.</p>
+<p>#RAGFlow #BackendEngineering #RAG #Golang #MinerU</p>
+<p><a href="https://github.com/infiniflow/ragflow/pull/19445" target="_blank" rel="noopener noreferrer">https://github.com/infiniflow/ragflow/pull/19445</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#45</span> <span class="post-title">Studio systemd service</span><span class="post-ref">unslothai/unsloth#9308</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth</span><span class="post-tag">systemd</span><span class="post-tag">Linux</span><span class="post-tag">backend engineering</span><span class="post-tag">production reliability</span><span class="post-tag">installer</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>A crash shouldn't mean someone has to SSH in and restart your LLM server by hand.</p>
+<p>That was the ask behind a feature request to run Unsloth Studio, a local LLM server, as a Linux systemd service:<br>
+Start on boot. Come back after a crash.</p>
+<p>Sounds like a systemd unit file.<br>
+The first fix that came to mind was wrong.</p>
+<p>A unit file is the small part. The hard part is what a default installer is allowed to do to someone's machine.</p>
+<p>So I made a few design calls:</p>
+<p>→ It is opt-in. Nothing changes unless UNSLOTH_INSTALL_SYSTEMD=1 is set at install time. No new prompt, no new output, and the existing "Start Unsloth Studio now?" flow is untouched.<br>
+→ It runs as a user service, not a root one, written to ~/.config/systemd/user.<br>
+→ It uses Restart=on-failure, so a crash recovers but a deliberate stop stays stopped.<br>
+→ It binds to 127.0.0.1 by default, same as running unsloth studio by hand. Exposing it to the LAN means explicitly setting UNSLOTH_SYSTEMD_HOST=0.0.0.0.</p>
+<p>Then the sneaky parts.</p>
+<p>User services normally only run while you're logged in. For boot without a login session you need loginctl enable-linger once. The installer can't quietly decide that for you, so it prints the hint instead.</p>
+<p>Uninstall was the one I cared about most.<br>
+If a script deletes a unit file, how does it know the file is the one it created?<br>
+So the installer stamps its unit with a marker, and uninstall only disables and removes units that carry it. A hand-written unit with the same name is left alone.</p>
+<p>Order matters too. Teardown has to stop the unit before the kill sweep, otherwise Restart=on-failure helpfully brings the server back in the middle of removal.</p>
+<p>For tests, I covered the generated unit contents, escaping, the systemctl calls, that leaving the flag off leaves the install unchanged, and that no helper is run from the caller's working directory. There is also a check that the installer asks no new interactive question.</p>
+<p>What I learned:</p>
+<p>1. Opt-in is a feature.<br>
+Auto-start is useful, but an installer that changes system state by default is a surprise. Make the risky path a conscious choice.</p>
+<p>2. Secure defaults beat convenient defaults.<br>
+Localhost binding means the convenient option can't accidentally become an exposed server.</p>
+<p>3. Uninstall needs ownership proof.<br>
+Only remove what you can prove you created. A marker turns a guess into a check.</p>
+<p>4. Lifecycle order is part of correctness.<br>
+A restart policy and a cleanup script can fight each other if you don't sequence them.</p>
+<p>5. Print the manual step you can't automate.<br>
+Some things like linger need the user's consent. Say so clearly.</p>
+<p>Reliable software isn't only about surviving a crash. It's also about cleaning up after itself.</p>
+<p>#Unsloth #BackendEngineering #Linux #systemd #LLM</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/9308" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9308</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#46</span> <span class="post-title">Kokoro TTS gateway probe and playback</span><span class="post-ref">unslothai/unsloth#9905</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth</span><span class="post-tag">TTS</span><span class="post-tag">Kokoro</span><span class="post-tag">OpenAI-compatible API</span><span class="post-tag">WAV</span><span class="post-tag">Python</span><span class="post-tag">TypeScript</span><span class="post-tag">backend engineering</span></div>
+<div class="post-body">
+<p>The TTS server returned HTTP 200. The browser still refused to play it.</p>
+<p>The error was: "The fetching process for the media resource was aborted by the user agent at the user's request."</p>
+<p>I hit this in the backend text-to-speech integration, connecting Unsloth Studio to Kokoro FastAPI, an OpenAI-compatible TTS API gateway.</p>
+<p>Two things were broken at once, and they hid behind each other.</p>
+<p>First, the "test connection" button.<br>
+It always probed /chat/completions.<br>
+A TTS-only gateway exposes /models and /audio/speech, but no chat endpoint. So a perfectly healthy server was reported as broken.</p>
+<p>Second, playback.<br>
+Kokoro defaults to stream: true. The response was a chunked stream containing several complete WAV files glued together. And the blob URL on the frontend was built without the upstream Content-Type.</p>
+<p>Simple fix. Set the header, done.<br>
+Not quite.</p>
+<p>The naive version would be "just add a MIME type." But a file with multiple RIFF headers back to back is not one valid WAV, no matter what label you put on it.</p>
+<p>So the fix is layered:</p>
+<p>→ Connection test probes /models, then /audio/speech, then /chat/completions<br>
+→ The external TTS proxy sends stream: false, so the upstream returns one complete file<br>
+→ As a defense for servers that still return concatenated WAVs, the backend merges the segments into a single WAV<br>
+→ That merge has caps: a maximum total size (64 MB) and a maximum segment count (1,024), and it rejects anything whose RIFF headers don't add up<br>
+→ The frontend builds blob URLs from the response Content-Type<br>
+→ Only wav is supported on this path, and other formats are rejected with a clear message</p>
+<p>The caps matter. Anything that parses untrusted bytes from a remote server needs bounds before it needs cleverness.</p>
+<p>Verification: I added backend tests for the probe order, stream: false and the WAV merge, plus frontend tests for blob MIME handling. The PR body lists the relevant backend and frontend suites passing.</p>
+<p>What I learned:</p>
+<p>1. HTTP 200 only means the server replied.<br>
+Whether the payload is playable is a separate question.</p>
+<p>2. Health checks should match what the service actually offers.<br>
+Probing one endpoint assumes every provider is a chat provider.</p>
+<p>3. Defaults differ across "compatible" APIs.<br>
+OpenAI-compatible rarely means identical. stream: true was a default I did not choose.</p>
+<p>4. Metadata is part of the data.<br>
+Losing a Content-Type turned valid audio into a failed media load.</p>
+<p>5. Bound every parser that touches remote bytes.<br>
+Size and segment limits are cheap insurance.</p>
+<p>Compatibility is a spectrum, not a checkbox.</p>
+<p>#Unsloth #BackendEngineering #TextToSpeech #Python #TypeScript</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/9905" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9905</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#47</span> <span class="post-title">LlamaParse and Unstructured in Dify&#x27;s worker</span><span class="post-ref">langgenius/dify-official-plugins#3756</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">LlamaParse</span><span class="post-tag">Unstructured</span><span class="post-tag">RAG</span><span class="post-tag">asyncio</span><span class="post-tag">gevent</span><span class="post-tag">Python</span><span class="post-tag">plugins</span><span class="post-tag">knowledge pipeline</span></div>
+<div class="post-body">
+<p>The plugin said it succeeded. The output was an error message.</p>
+<p>That's the worst kind of failure in a Dify RAG pipeline: it looks like data, so the next node happily indexes it.</p>
+<p>I ran into this in the Dify LlamaParse plugin when a knowledge pipeline passed in multiple files.</p>
+<p>Two different errors showed up:<br>
+A type confusion complaint about a nested list.<br>
+And, in the Unstructured Transform plugin: "asyncio.run() cannot be called from a running event loop".</p>
+<p>Same family, different symptoms.</p>
+<p>Quick fix. Wrap the call and move on.<br>
+That would have been the wrong fix.</p>
+<p>First problem: what is File.blob, really?<br>
+LlamaParse expects bytes. Dify can hand over a bytearray or a memoryview. With multiple files, the payload could end up as a nested structure. The library then fails far from the cause.</p>
+<p>Second problem: Dify's plugin worker already runs inside an event loop (gevent-based), and these libraries call asyncio.run internally. That can't nest.</p>
+<p>Third problem, and the one I found most important: errors were yielded as normal text output. A failed parse looked like a successful parse.</p>
+<p>So the fix has a few parts:</p>
+<p>→ Coerce each File.blob to bytes, including bytearray and memoryview<br>
+→ Reject empty files, nested-list payloads and files without an extension-bearing name, with explicit errors<br>
+→ Normalize a single file into a list so multi-file source nodes keep working<br>
+→ Run load_data through a helper that applies nest_asyncio, so it works inside the running loop<br>
+→ Apply the same approach to Unstructured Transform through a shared coroutine runner<br>
+→ Raise parse and download errors instead of returning them as results</p>
+<p>I added unit tests for the coercion cases, the rejection cases, and a call made from inside a running event loop.</p>
+<p>What I learned:</p>
+<p>1. A failure that returns text is a silent failure.<br>
+In a pipeline, the only honest error is one that stops the node.</p>
+<p>2. Types at a boundary are a contract.<br>
+If a blob can be bytes, bytearray or memoryview, normalize it once, at the edge.</p>
+<p>3. Know the runtime you're deployed into.<br>
+asyncio.run works in a script and breaks in a worker that already owns the loop.</p>
+<p>4. Multi-input paths need their own tests.<br>
+The single-file case passed. The multi-file case is where it broke.</p>
+<p>5. Make invalid input loud and early.<br>
+A clear ValueError beats a stack trace from three layers down.</p>
+<p>In RAG, bad parsing doesn't crash. It quietly poisons your index.</p>
+<p>#Dify #AIEngineering #RAG #Python #Asyncio</p>
+<p><a href="https://github.com/langgenius/dify-official-plugins/pull/3756" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify-official-plugins/pull/3756</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#48</span> <span class="post-title">Dify DELETE body stripped by proxies</span><span class="post-ref">langgenius/dify#42162</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">HTTP</span><span class="post-tag">DELETE</span><span class="post-tag">REST API</span><span class="post-tag">TypeScript</span><span class="post-tag">Python</span><span class="post-tag">API design</span><span class="post-tag">reverse proxy</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>I couldn't delete a custom model provider in Dify.</p>
+<p>The button worked. The request went out. Dify's backend API replied with validation errors about missing fields.</p>
+<p>But the fields were there. I could see them in the browser.</p>
+<p>The cause was one line of HTTP semantics.</p>
+<p>The web UI sent model, model_type and, for credential removal, credential_id in the JSON body of a DELETE request.</p>
+<p>Many reverse proxies and gateways strip DELETE bodies. So the backend received an empty object, and Pydantic did exactly what it should: reject it.</p>
+<p>Easy fix. Make the backend lenient.<br>
+Except it didn't need to be.</p>
+<p>The backend already accepted these fields as query parameters through validate_request(). The fix was on the client, not the server.</p>
+<p>So the change was small and deliberate:</p>
+<p>→ useDeleteModel and useDeleteModelCredential now send params instead of a body<br>
+→ Both DELETE routes are documented in OpenAPI as query-parameter endpoints<br>
+→ The generated contract types were updated to match<br>
+→ Regression tests call the model and credential DELETE routes with a query string</p>
+<p>No breaking API signature change. No new server behavior. Just aligning the client with what the server already supported.</p>
+<p>The test suite for that controller passes, per the PR.</p>
+<p>What I learned:</p>
+<p>1. A request body on DELETE is a gamble.<br>
+The spec leaves its meaning undefined, and intermediaries are free to drop it. Identify the resource in the URL.</p>
+<p>2. The bug can be in the layer that works in dev.<br>
+Locally there's no proxy. In a real deployment there is, and it changes what your API sees.</p>
+<p>3. Check what the other side already supports before changing it.<br>
+The smallest correct fix was already half-built.</p>
+<p>4. Document what you rely on.<br>
+Putting query parameters in the OpenAPI spec makes the contract explicit.</p>
+<p>5. Test the transport shape, not only the handler.<br>
+A test that sends the request the way a gateway would deliver it is worth more than a test that calls the function directly.</p>
+<p>Some of the most frustrating production bugs aren't in your code. They're in what happens to your request on the way there.</p>
+<p>#Dify #BackendEngineering #APIDesign #TypeScript #Python</p>
+<p><a href="https://github.com/langgenius/dify/pull/42162" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify/pull/42162</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#49</span> <span class="post-title">Symlink aliases and per-model settings</span><span class="post-ref">unslothai/unsloth#10644</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth</span><span class="post-tag">Studio</span><span class="post-tag">symlinks</span><span class="post-tag">Windows junctions</span><span class="post-tag">Python</span><span class="post-tag">TypeScript</span><span class="post-tag">backend engineering</span><span class="post-tag">model management</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>I saved settings for a model. After a reload, they were gone.</p>
+<p>Or worse: I made two symlinks to one model so each could have its own settings, and the model list showed only one of them.</p>
+<p>This was in Unsloth Studio, in the backend code behind its local model inventory.</p>
+<p>The cause was a deduplication rule. The inventory identified models by physical on-disk identity, the inode. Two symlinks to the same folder have the same inode, so they were collapsed into one row.</p>
+<p>That made sense for avoiding duplicates. It didn't make sense for "Remember settings for this model", which is keyed by the path shown in the UI.</p>
+<p>The obvious fix. Stop deduplicating.<br>
+The obvious fix had a catch.</p>
+<p>Without dedup, you get real duplicates in cases we do want to merge. So the rules needed to stay precise:</p>
+<p>→ A symlink plus its canonical path stays one row, and the real path wins<br>
+→ A loose file plus a symlink to the same file stays one row<br>
+→ GGUF and safetensors at the same path stay two rows<br>
+→ Overlapping scan roots, like a symlinked folder plus the real folder, stay one row<br>
+→ Two distinct symlinks in a scan folder pointing at one model now stay two rows</p>
+<p>The key idea: identity for the user is the path they see, not the inode underneath. So rows are now keyed by an alias path, with only the scan root resolved. Two registered roots reaching the same folder are one alias. Links below that root are not.</p>
+<p>Then Windows.<br>
+Path.is_symlink() returns False for a directory junction, and mklink /J needs no admin rights. So detection also reads the reparse tag for mount points.</p>
+<p>Tests cover two symlink aliases staying distinct, two junction aliases on Windows, overlapping scan roots collapsing to one row, and a frontend test that alias paths keep independent remembered settings.</p>
+<p>What I learned:</p>
+<p>1. Identity depends on who is asking.<br>
+The filesystem sees one model. The user sees two names with two configurations.</p>
+<p>2. Dedup rules need explicit exceptions, not removal.<br>
+Dropping the rule would have fixed one case and broken four.</p>
+<p>3. Resolve as little as you need.<br>
+Resolving the entire path erases the very distinction you want to keep.</p>
+<p>4. Windows has its own link types.<br>
+If your code only checks for symlinks, junctions will slip through.</p>
+<p>5. Match the key to the feature.<br>
+Settings keyed by path need rows keyed by path.</p>
+<p>Deduplication is only correct relative to what the user considers the same thing.</p>
+<p>#Unsloth #BackendEngineering #Python #TypeScript #LLM</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/10644" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10644</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#50</span> <span class="post-title">The autotune key nobody read</span><span class="post-ref">unslothai/unsloth-zoo#1195</span></summary>
+<div class="post-tags"><span class="post-tag">performance</span><span class="post-tag">Triton</span><span class="post-tag">LLM training</span><span class="post-tag">Unsloth</span><span class="post-tag">CPU overhead</span><span class="post-tag">open source</span><span class="post-tag">Python</span></div>
+<div class="post-body">
+<p>Nothing was wrong with the GPU kernels.<br>
+The CPU was building a key nobody ever used.</p>
+<p>This started from a CPU overhead report in Unsloth, the LLM fine-tuning library: about 2,500 fla launches per step on Qwen3.5-9B LoRA.</p>
+<p>At that count, even tiny per-launch costs stop being tiny.</p>
+<p>So I looked at the vendored fla CachedAutotuner.run.</p>
+<p>On every Triton launch it built an AutotuneKey.<br>
+Then Autotuner.run built its own key again.</p>
+<p>The first one is only useful for a disk-cache lookup.<br>
+But FLA_CACHE_MODE defaults to disabled.<br>
+In that mode, no disk-cache lookup happens.</p>
+<p>So the default path paid for a key it never read.</p>
+<p>The fix was small:<br>
+→ build the key only for modes that actually read the cache (default, always, strict)<br>
+→ launches still go through Autotuner.run unchanged</p>
+<p>What I measured, as stated in the PR:<br>
+→ AutotuneKey.build with a gated-delta style signature (13 args, 7 tensors): about 4 us per call on CPU, now skipped per launch in the default mode<br>
+→ trivial autotuned kernel launch, base vs head on the same GPU: roughly 31 us vs 25 us per launch (shared host, so indicative only)</p>
+<p>I added a test that checks, for each FLA_CACHE_MODE, whether the key is built and the disk cache consulted, and that Autotuner.run still receives the original args. The disabled case fails on main.</p>
+<p>What I took away:</p>
+<p>1. Hot paths hide in plain sight.<br>
+A few microseconds is invisible once. It is not invisible thousands of times per step.</p>
+<p>2. Defaults deserve the most scrutiny.<br>
+The default mode is what most users actually run.</p>
+<p>3. Do work only when something will read it.<br>
+If a value is computed for a feature that is off, it is pure overhead.</p>
+<p>In LLM training, the cheapest operation is the one you never run.</p>
+<p>#Unsloth #AIEngineering #Triton #Python #LLM</p>
+<p><a href="https://github.com/unslothai/unsloth-zoo/pull/1195" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth-zoo/pull/1195</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#51</span> <span class="post-title">Small Studio fixes that unblock users</span><span class="post-ref">unslothai/unsloth#10848, #10849, #9770</span></summary>
+<div class="post-tags"><span class="post-tag">Unsloth Studio</span><span class="post-tag">llama.cpp</span><span class="post-tag">logging</span><span class="post-tag">Hugging Face</span><span class="post-tag">hf-xet</span><span class="post-tag">Ollama</span><span class="post-tag">reasoning</span><span class="post-tag">LLM serving</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>Three small Unsloth Studio bugs, all in its local LLM serving backend.<br>
+None of them crashed anything.<br>
+All of them left a user stuck with no way forward.</p>
+<p>1. The log users sent me was empty.</p>
+<p>After a normal Studio run, the session log held no llama-server output at all.<br>
+Every forwarded line was logged at DEBUG, and DEBUG only went to a separate llama log.<br>
+So the file people sent for debugging had nothing useful in it.</p>
+<p>The fix:<br>
+→ llama.cpp lines tagged W or E, plus the readiness line, now go to INFO<br>
+→ unprefixed continuation lines inherit their record's level, so prompt text never reaches INFO because of its wording<br>
+→ writes from the stdout drain are guarded, so a closed stdout can't stall llama-server</p>
+<p>On a GPU, Studio from main put 0 llama-server lines in the session log. The branch put the two warnings and "model loaded" there.</p>
+<p>2. Large GGUF downloads failed in Desktop.</p>
+<p>"The file is too large to be downloaded using the regular download method."<br>
+Without hf_xet, huggingface_hub refuses any single blob over 50GB.<br>
+GGUF-only installs use --no-deps, so hf-xet was never pulled in transitively.<br>
+The fix was to declare hf-xet explicitly in the requirements files and the studio extra, with a regression test.</p>
+<p>3. Thinking controls never reached Ollama.</p>
+<p>enable_thinking and reasoning_effort were not being sent.<br>
+Now they map onto Ollama's OpenAI-compatible reasoning_effort:<br>
+→ enable_thinking false sends none<br>
+→ enable_thinking true with no effort sends medium<br>
+→ minimal maps to low, xhigh maps to max</p>
+<p>What I took away:</p>
+<p>1. Diagnostics are a feature.<br>
+If users send you a log, that log has to contain the failure.</p>
+<p>2. Transitive dependencies are not a guarantee.<br>
+A flag like --no-deps changes what "installed" means.</p>
+<p>3. Pass-through settings need an explicit mapping.<br>
+If a control isn't translated for a provider, it silently does nothing.</p>
+<p>The smallest fixes often unblock the most people.</p>
+<p>#UnslothAI #AIEngineering #LlamaCpp #LLM #HuggingFace</p>
+<p><a href="https://github.com/unslothai/unsloth/pull/10848" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10848</a><br>
+<a href="https://github.com/unslothai/unsloth/pull/10849" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/10849</a><br>
+<a href="https://github.com/unslothai/unsloth/pull/9770" target="_blank" rel="noopener noreferrer">https://github.com/unslothai/unsloth/pull/9770</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#52</span> <span class="post-title">RAG chunk and ingestion contracts</span><span class="post-ref">infiniflow/ragflow#18889, #20265, #19478</span></summary>
+<div class="post-tags"><span class="post-tag">RAG</span><span class="post-tag">RAGFlow</span><span class="post-tag">chunking</span><span class="post-tag">ingestion pipeline</span><span class="post-tag">Go</span><span class="post-tag">Python</span><span class="post-tag">API design</span><span class="post-tag">open source</span><span class="post-tag">backend engineering</span></div>
+<div class="post-body">
+<p>In RAG, the retrieval model gets the blame.<br>
+But a lot of bad retrieval starts earlier, in the chunk contract.</p>
+<p>Three RAGFlow fixes in its RAG ingestion pipeline and chunk API, one theme: be explicit about what a chunk is.</p>
+<p>1. You could only append images.</p>
+<p>The chunk PATCH API accepted image_base64.<br>
+But if the chunk already had an image, the new one was always appended vertically.<br>
+External ingestion tools couldn't replace or remove an image without deleting and reparsing the document.</p>
+<p>I added an optional image_update_mode:<br>
+→ append (default, current behavior)<br>
+→ replace<br>
+→ remove, which deletes the stored image and resets doc_type_kwd to text</p>
+<p>2. Tables and images lost their surrounding text.</p>
+<p>In the Go ingestion pipeline, GeneralChunker attached surrounding context for PDF, DOCX and spreadsheet paths.<br>
+The markdown and HTML/plain-text paths never did.<br>
+Markdown table units also never got a CKType, so the context hook would have skipped them anyway.<br>
+The fix calls attachGeneralMediaContext on those paths and sets CKType on markdown table and image units.</p>
+<p>3. A legacy field leaked into the Go ingestion DSL.</p>
+<p>content_with_weight was still showing up before persistence.<br>
+I made text the sole canonical chunk field until the final persistence rename:<br>
+→ chunkers, tokenizer, extractor and tagger read text only<br>
+→ the typed ContentWithWeight field is removed from ChunkDoc<br>
+→ the persistence boundary requires a string text, then renames it to content_with_weight</p>
+<p>What I took away:</p>
+<p>1. Mutation APIs need more than "set".<br>
+Append, replace and remove are different intents.</p>
+<p>2. Every parser path needs the same enrichment.<br>
+If one path skips it, retrieval quality varies by file type.</p>
+<p>3. Pick one canonical field per stage.<br>
+Two names for the same content means bugs at the boundary.</p>
+<p>A chunk is a contract. Treat it like one.</p>
+<p>#RAGFlow #BackendEngineering #RAG #Python #Golang</p>
+<p><a href="https://github.com/infiniflow/ragflow/pull/18889" target="_blank" rel="noopener noreferrer">https://github.com/infiniflow/ragflow/pull/18889</a><br>
+<a href="https://github.com/infiniflow/ragflow/pull/20265" target="_blank" rel="noopener noreferrer">https://github.com/infiniflow/ragflow/pull/20265</a><br>
+<a href="https://github.com/infiniflow/ragflow/pull/19478" target="_blank" rel="noopener noreferrer">https://github.com/infiniflow/ragflow/pull/19478</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#53</span> <span class="post-title">Dify plugin runtime and SDK compatibility</span><span class="post-ref">langgenius/dify-plugin-daemon#819 + langgenius/dify#42481, langgenius/dify-plugin-sdks#385</span></summary>
+<div class="post-tags"><span class="post-tag">Dify</span><span class="post-tag">plugin daemon</span><span class="post-tag">uv</span><span class="post-tag">Docker</span><span class="post-tag">WSL</span><span class="post-tag">Pydantic</span><span class="post-tag">MCP</span><span class="post-tag">Python</span><span class="post-tag">Go</span><span class="post-tag">open source</span><span class="post-tag">backend engineering</span></div>
+<div class="post-body">
+<p>Two Dify plugin bugs.<br>
+Neither was in the plugin code.<br>
+Both were in the plumbing around it: the Dify plugin daemon (Go) and the plugin SDK (Python).</p>
+<p>1. Permission denied (os error 13)</p>
+<p>On Docker with bind mounts, a common setup on WSL, plugin dependency installs failed.<br>
+The plugin daemon always gave uv a cache at PLUGIN_WORKING_PATH/.uv-cache.<br>
+That path sits on the bind mount, where host and container ownership often don't match.<br>
+So uv failed with Permission denied while renaming cache entries.</p>
+<p>This needed a fix on both sides:<br>
+→ dify-plugin-daemon: UV_CACHE_DIR is now an optional override (the default stays PLUGIN_WORKING_PATH/.uv-cache), and the directory is created before uv runs<br>
+→ dify: the Docker env examples drop the global UV_CACHE_DIR defaults and document it as an optional UV_CACHE_DIR=/tmp/.uv-cache setting for the plugin daemon, for bind-mount permission errors</p>
+<p>I added a unit test for the cache-dir resolution.<br>
+The Dify change needs a matching daemon release to take full effect, so I said that in the PR.</p>
+<p>2. Pydantic rejected a value Dify core itself emits.</p>
+<p>In agent/chat mode, MCP blob resources produced this error:<br>
+Input should be 'text', 'file', 'blob', 'json', 'link', 'image', 'image_link', ...<br>
+input_value='binary_link'</p>
+<p>Dify core's message_transformer emits type binary_link for non-image blobs.<br>
+The SDK enum InvokeMessage.MessageType didn't have it.<br>
+I added BINARY_LINK and tests that ToolInvokeMessage and DatasourceMessage accept it.</p>
+<p>What I took away:</p>
+<p>1. Runtime state belongs on container-local storage.<br>
+Caches on bind mounts inherit host permission problems.</p>
+<p>2. Fix the contract on both sides of a boundary.<br>
+A daemon change and an env-example change were one bug.</p>
+<p>3. Enums are wire contracts.<br>
+If one side can emit a value, the other side's enum has to know it.</p>
+<p>Many "plugin bugs" are really version-skew bugs in disguise.</p>
+<p>#Dify #BackendEngineering #Docker #MCP #Golang</p>
+<p><a href="https://github.com/langgenius/dify-plugin-daemon/pull/819" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify-plugin-daemon/pull/819</a><br>
+<a href="https://github.com/langgenius/dify/pull/42481" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify/pull/42481</a><br>
+<a href="https://github.com/langgenius/dify-plugin-sdks/pull/385" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify-plugin-sdks/pull/385</a></p>
+</div>
+</details>
+<details class="post-card boxxy">
+<summary><span class="post-num">#54</span> <span class="post-title">Request and payload edge cases</span><span class="post-ref">BerriAI/litellm#36513, langgenius/dify#41761</span></summary>
+<div class="post-tags"><span class="post-tag">LiteLLM</span><span class="post-tag">LLM gateway</span><span class="post-tag">FastAPI</span><span class="post-tag">form-encoded</span><span class="post-tag">multipart</span><span class="post-tag">UTF-8</span><span class="post-tag">Dify</span><span class="post-tag">Python</span><span class="post-tag">backend engineering</span><span class="post-tag">open source</span></div>
+<div class="post-body">
+<p>The happy path worked in both of these.<br>
+In LiteLLM's LLM API gateway and Dify's backend, the same data in a slightly different shape did not.</p>
+<p>1. A video edit returned 500 on form input.</p>
+<p>Through the LiteLLM proxy, JSON requests to /v1/videos/edits worked.<br>
+Form-encoded and multipart requests returned 500.<br>
+The OpenAI SDK's client.videos.edit() failed with an internal server error.<br>
+The proxy log showed: RuntimeError: Stream consumed.</p>
+<p>The cause: the handler read the raw request body again, after auth had already consumed the stream.<br>
+The fix reads through the same cached post-auth body path used elsewhere.<br>
+It also normalizes the video field into video_id, whether it arrives as a dict, a bare id string, or a JSON-encoded string.<br>
+Video remix got the same body handling.</p>
+<p>I checked it by running the same requests against a proxy before and after the change. Form-urlencoded and multipart edits went from 500 to 200.</p>
+<p>2. A text file was reported as binary.</p>
+<p>In Dify's binding-file preview, the file was hard-sliced at max_bytes.<br>
+Then it was decoded as strict UTF-8.<br>
+If the cut landed inside a multibyte character, the decode failed and the whole file was called binary.</p>
+<p>For example, a file containing a€ with max_bytes 2 cuts the euro sign in half.</p>
+<p>The fix keeps the longest valid prefix, but only when the error is "unexpected end of data" at the end of the buffer.<br>
+Invalid bytes in the middle still classify the file as binary.<br>
+Tests cover 2-, 3- and 4-byte splits.</p>
+<p>What I took away:</p>
+<p>1. A body is a stream, not a variable.<br>
+Read it once, then reuse the cached copy.</p>
+<p>2. Same data, different encoding.<br>
+JSON, form and multipart should all reach the same handler logic.</p>
+<p>3. Truncation can create the error you then report.<br>
+Distinguish "cut off" from "actually invalid".</p>
+<p>Most edge cases aren't exotic. They're the same input in a different shape.</p>
+<p>#LiteLLM #Dify #BackendEngineering #FastAPI #LLM</p>
+<p><a href="https://github.com/BerriAI/litellm/pull/36513" target="_blank" rel="noopener noreferrer">https://github.com/BerriAI/litellm/pull/36513</a><br>
+<a href="https://github.com/langgenius/dify/pull/41761" target="_blank" rel="noopener noreferrer">https://github.com/langgenius/dify/pull/41761</a></p>
+</div>
+</details>
+
         <div class="text-center mt-6">
             <a href="opensource.html"
                 class="inline-block boxxy px-4 py-2 bg-gray-700 text-white text-[10px] md:text-[12px] headingfont">View all merged PRs &rarr;</a>

@@ -25,3 +25,16 @@ body {
     image-rendering: crisp-edges;
     image-rendering: pixelated;
 }
+
+/* Weekly OSS Review: LinkedIn post cards */
+.post-card { margin: 0 1rem 1rem; padding: 0.75rem 1rem; }
+.post-card summary { cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; list-style: none; }
+.post-card summary::-webkit-details-marker { display: none; }
+.post-num { color: #facc15; font-size: 12px; }
+.post-title { color: #fff; font-size: 14px; font-weight: 600; }
+.post-ref { color: #9ca3af; font-size: 11px; width: 100%; }
+.post-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.75rem; }
+.post-tag { background: #374151; color: #d1d5db; font-size: 10px; padding: 2px 6px; }
+.post-body { margin-top: 0.75rem; color: #e5e7eb; font-size: 13px; line-height: 1.7; }
+.post-body p { margin-bottom: 0.9rem; }
+.post-body a { color: #60a5fa; text-decoration: underline; word-break: break-all; }
